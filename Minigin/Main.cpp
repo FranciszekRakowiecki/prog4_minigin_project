@@ -1,5 +1,8 @@
+#include <iostream>
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_main.h>
+
+#include "Component.h"
 
 #if _DEBUG && __has_include(<vld.h>)
 #include <vld.h>
@@ -32,6 +35,13 @@ static void load()
 	to->SetColor({ 255, 255, 0, 255 });
 	to->SetPosition(292, 20);
 	scene.Add(std::move(to));
+
+	auto fps = std::make_unique<dae::TextObject>("FPS: ", font);
+	fps->SetColor({ 255, 255, 255, 255 });
+	fps->SetPosition(0, 0);
+	fps->AddComponent<dae::ExampleUpdateComponent>();
+
+	scene.Add(std::move(fps));
 }
 
 int main(int, char*[]) {

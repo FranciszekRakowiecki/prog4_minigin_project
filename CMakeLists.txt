@@ -10,7 +10,11 @@ if(EMSCRIPTEN)
   set(TARGET_PARAM )
 else()
   set(TARGET_NAME minigin)
-  set(TARGET_PARAM WIN32)
+  set(TARGET_PARAM WIN32
+          Minigin/GameTime.cpp
+          Minigin/GameTime.h
+          Minigin/Component.cpp
+          Minigin/Component.h)
 endif()
 
 # list source files here
@@ -27,6 +31,8 @@ add_executable(${TARGET_NAME} ${TARGET_PARAM}
   Minigin/TextObject.cpp
   Minigin/Texture2D.cpp
   Minigin/Transform.cpp
+        Minigin/Component.cpp
+        Minigin/GameTime.cpp
 )
 
 # enable c++20 features

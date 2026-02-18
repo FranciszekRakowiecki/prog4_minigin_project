@@ -3,6 +3,7 @@
 #include <memory>
 #include "GameObject.h"
 #include "Transform.h"
+#include <SDL3/SDL.h>
 
 namespace dae
 {

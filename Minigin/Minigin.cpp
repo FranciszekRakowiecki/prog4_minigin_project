@@ -11,6 +11,8 @@
 //#include <SDL3_image/SDL_image.h>
 #include <SDL3_ttf/SDL_ttf.h>
 #include "Minigin.h"
+
+#include "GameTime.h"
 #include "InputManager.h"
 #include "SceneManager.h"
 #include "Renderer.h"
@@ -91,8 +93,18 @@ void dae::Minigin::Run(const std::function<void()>& load)
 {
 	load();
 #ifndef __EMSCRIPTEN__
-	while (!m_quit)
-		RunOneFrame();
+	const float frame_ms = 1.0f / 60.0f;
+
+	float lastFrame = GameTime::GetInstance().GetTime();
+
+	while (!m_quit) {
+		float delta = GameTime::GetInstance().GetTime() - lastFrame;
+		if (delta >= frame_ms) {
+			lastFrame = GameTime::GetInstance().GetTime();
+			GameTime::GetInstance().SetDeltaTime(delta);
+			RunOneFrame();
+		}
+	}
 #else
 	emscripten_set_main_loop_arg(&LoopCallback, this, 0, true);
 #endif
