@@ -61,8 +61,8 @@ void dae::GameObject::SetPosition(float x, float y)
 	m_transform.SetPosition(x, y, 0.0f);
 }
 
-std::weak_ptr<dae::Component> dae::GameObject::GetComponent(int index) const {
-	return m_Components[index];
+dae::Reference<dae::Component> dae::GameObject::GetComponent(int index) const {
+	return Reference<Component>(m_Components[index]);
 }
 
 size_t dae::GameObject::GetComponentsCount() const {

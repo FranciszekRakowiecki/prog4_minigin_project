@@ -23,6 +23,9 @@ int dae::Component::GetFlags() {
     return 0;
 }
 
+void dae::Component::Start() {
+}
+
 void dae::Component::Update() {
 }
 

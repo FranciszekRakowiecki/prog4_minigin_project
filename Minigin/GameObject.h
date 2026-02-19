@@ -1,11 +1,9 @@
 #pragma once
 #include <string>
 #include <memory>
-#include "Transform.h"
 
-namespace dae {
-	class Component;
-}
+#include "Component.h"
+#include "Transform.h"
 
 namespace dae
 {
@@ -35,32 +33,33 @@ namespace dae
 
 		// Trying to mirror 1 to 1 with how unity does it ish
 
-		template<class T = Component>
-		std::weak_ptr<T> AddComponent() {
+		template<typename T, typename = std::enable_if<std::is_base_of_v<Component, T>>>
+		Reference<T> AddComponent() {
 			std::shared_ptr<T> component = std::make_shared<T>();
 			m_Components.emplace_back(component);
 			component->m_Parent = this;
 			component->flags = component->GetFlags();
 
-			return component;
+			component->Start();
+
+			return Reference<T>(component);
 		}
 
-		template<typename T = Component>
-		std::weak_ptr<T> GetComponent() const {
+		template<typename T, typename = std::enable_if<std::is_base_of_v<Component, T>>>
+		Reference<T> GetComponent() const {
 			for (int index = 0; index < (int)GetComponentsCount(); ++index) {
-				std::weak_ptr<Component> component = GetComponent(index);
-				if (!component.expired()) {
-					std::shared_ptr<Component> _sharedcomponent = component.lock();
-					T* result = dynamic_cast<T*>(_sharedcomponent.get());
+				Reference<Component> component = GetComponent(index);
+				if (component) {
+					T* result = dynamic_cast<T*>(component);
 					if (result != nullptr) {
-						return _sharedcomponent;
+						return Reference<T>(result);
 					}
 				}
 			}
-			return nullptr;
+			return Reference<T>(nullptr);
 		}
 
-		std::weak_ptr<Component> GetComponent(int index) const;
+		Reference<Component> GetComponent(int index) const;
 		size_t GetComponentsCount() const;
 
 		friend class Scene;
