@@ -93,17 +93,10 @@ void dae::Minigin::Run(const std::function<void()>& load)
 {
 	load();
 #ifndef __EMSCRIPTEN__
-	const float frame_ms = 1.0f / 60.0f;
-
-	float lastFrame = GameTime::GetInstance().GetTime();
+	m_LastFrame = GameTime::GetInstance().GetTime();
 
 	while (!m_quit) {
-		float delta = GameTime::GetInstance().GetTime() - lastFrame;
-		if (delta >= frame_ms) {
-			lastFrame = GameTime::GetInstance().GetTime();
-			GameTime::GetInstance().SetDeltaTime(delta);
-			RunOneFrame();
-		}
+		RunOneFrame();
 	}
 #else
 	emscripten_set_main_loop_arg(&LoopCallback, this, 0, true);
@@ -112,6 +105,13 @@ void dae::Minigin::Run(const std::function<void()>& load)
 
 void dae::Minigin::RunOneFrame()
 {
+	float delta = GameTime::GetInstance().GetTime() - m_LastFrame;
+
+	if (delta < m_TargetMS)
+		return;
+
+	m_LastFrame = GameTime::GetInstance().GetTime();
+	GameTime::GetInstance().SetDeltaTime(delta);
 	m_quit = !InputManager::GetInstance().ProcessInput();
 	SceneManager::GetInstance().Update();
 	Renderer::GetInstance().Render();

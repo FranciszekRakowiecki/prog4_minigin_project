@@ -40,3 +40,25 @@ void dae::ExampleUpdateComponent::Update() {
         parent->SetText("FPS: " + std::to_string(clampedFPS));
     }
 }
+
+dae::ExampleRotator::ExampleRotator() {
+
+}
+
+int dae::ExampleRotator::GetFlags() {
+    return COMPONENT_HAS_UPDATE;
+}
+
+void dae::ExampleRotator::Update() {
+    Transform& transform = GetParent()->transform;
+
+    transform.SetRotation(transform.GetRotation() + GameTime::GetInstance().GetDeltaTime() * rotatorSpeed);
+
+    glm::vec3 pos = glm::vec3{cosf(transform.GetRotation()) * 100.0f, sinf(transform.GetRotation()) * 100.0f, 0.0f};
+
+    transform.SetLocalPosition(pos + offset);
+}
+
+void dae::ExampleRotator::Start() {
+    offset = GetParent()->transform.GetPosition();
+}

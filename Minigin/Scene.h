@@ -10,7 +10,7 @@ namespace dae
 	{
 	public:
 		void Add(std::unique_ptr<GameObject> object);
-		void Remove(const GameObject& object);
+		void Remove(GameObject& object);
 		void RemoveAll();
 
 		void Update();
@@ -24,9 +24,13 @@ namespace dae
 
 	private:
 		friend class SceneManager;
+		friend class GameObject;
 		explicit Scene() = default;
 
-		std::vector < std::unique_ptr<GameObject>> m_objects{};
+		// Releasing unique_ptr's ownership of a stored object
+		GameObject* pop(GameObject* object);
+
+		std::vector <std::unique_ptr<GameObject>> m_objects{};
 	};
 
 }

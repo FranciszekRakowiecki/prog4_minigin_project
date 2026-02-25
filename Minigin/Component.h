@@ -5,6 +5,9 @@
 #ifndef MINIGIN_COMPONENT_H
 #define MINIGIN_COMPONENT_H
 #include <memory>
+#include <cassert>
+
+#include "glm/vec3.hpp"
 
 namespace dae {
     class GameObject;
@@ -44,6 +47,8 @@ namespace dae {
         // as to not use any resources from a gameobject if a component reference is stored elsewhere
 
         friend class GameObject;
+        // I know using friend is unfavorable but components should never be allowed to be initialized without a game object and
+        // this allows for easily setting the parent without having to relly that the user implements a valid constructor that sets the private member.
     };
 
     // Allowing components to instead be passed around using this
@@ -96,6 +101,17 @@ namespace dae {
     public:
         int GetFlags() override;
         void Update() override;
+    };
+
+    class ExampleRotator : public Component {
+        public:
+        ExampleRotator();
+        float rotatorSpeed{1.0f};
+        int GetFlags() override;
+        void Update() override;
+        void Start() override;
+    private:
+        glm::vec3 offset;
     };
 
     // Tried to get interfaces to work but it just wont give

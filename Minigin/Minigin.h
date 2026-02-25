@@ -8,6 +8,9 @@ namespace dae
 	class Minigin final
 	{
 		bool m_quit{};
+
+		float m_LastFrame{};
+		const float m_TargetMS{ 1.0f / 60.0f };
 	public:
 		explicit Minigin(const std::filesystem::path& dataPath);
 		~Minigin();
