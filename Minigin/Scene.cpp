@@ -22,7 +22,7 @@ void Scene::RemoveAll()
 void Scene::Update()
 {
 	// Removing all gameobjects marked for disposal
-	for (int index = m_objects.size() - 1; index >= 0; --index) {
+	for (int index = (int)m_objects.size() - 1; index >= 0; --index) {
 		if (!m_objects[index]->m_IsDisposed)
 			continue;
 
@@ -34,11 +34,11 @@ void Scene::Update()
 		}
 	}
 
-	int size = m_objects.size();
+	int size = (int)m_objects.size();
 	for(int index = 0; index < size; ++index)
 	{
 		m_objects[index]->update_internal();
-		size = m_objects.size();// Temporary fix because set parent requires its own vector and functions before the update call to safely transpose it to a new parent.
+		size = (int)m_objects.size();// Temporary fix because set parent requires its own vector and functions before the update call to safely transpose it to a new parent.
 		// This should? hopefully make it so that when looping there is less of an issue to encounter a missing game object.
 	}
 }

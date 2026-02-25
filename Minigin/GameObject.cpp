@@ -18,7 +18,7 @@ dae::GameObject::~GameObject() {
 }
 
 void dae::GameObject::update_internal() {
-	for (int index = m_Components.size() - 1; index >= 0; --index) {
+	for (int index = (int)m_Components.size() - 1; index >= 0; --index) {
 		if (!m_Components[index]->m_IsDisposed)
 			continue;
 
@@ -30,7 +30,7 @@ void dae::GameObject::update_internal() {
 		}
 	}
 
-	for (int index = m_Children.size() - 1; index >= 0; --index) { // This could be a little bit problematic because of possible behavior requiring children in a specific order but genuinely cba
+	for (int index = (int)m_Children.size() - 1; index >= 0; --index) { // This could be a little bit problematic because of possible behavior requiring children in a specific order but genuinely cba
 		if (!m_Children[index]->m_IsDisposed)
 			continue;
 
@@ -54,10 +54,10 @@ void dae::GameObject::update_internal() {
 
 	Update();
 
-	int size = m_Children.size();
+	int size = (int)m_Children.size();
 	for (int index = 0; index < size; ++index) {
 		m_Children[index]->update_internal();
-		size = m_Children.size(); // Temporary fix because set parent requires its own vector and functions before the update call to safely transpose it to a new parent.
+		size = (int)m_Children.size(); // Temporary fix because set parent requires its own vector and functions before the update call to safely transpose it to a new parent.
 		// This should? hopefully make it so that when looping there is less of an issue to encounter a missing game object.
 	}
 }
