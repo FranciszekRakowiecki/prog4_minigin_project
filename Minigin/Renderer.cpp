@@ -121,7 +121,7 @@ void dae::Renderer::DrawExercise2() {
 
 		if (ImGui::Button("Thrash the cache with gameobject3D")) {
 			GetInstance().m_Exercise2_Timings.clear();
-			const int length = 67108864;
+			const int length = 4194304;
 			_Exercise2_GameObject* arr = new _Exercise2_GameObject[length];
 			int step = 1;
 			while (step <= 1024) {
