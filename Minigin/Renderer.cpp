@@ -3,7 +3,9 @@
 #include <iostream>
 #include "Renderer.h"
 
-#include "imgui.h"
+#include <chrono>
+
+#include <implot.h>
 #include "SceneManager.h"
 #include "Texture2D.h"
 #include "backends/imgui_impl_sdl3.h"
@@ -34,6 +36,8 @@ void dae::Renderer::Init(SDL_Window* window)
 	io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 	io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;
 
+	ImPlot::CreateContext();
+
 	#if __EMSCRIPTEN__
 		io.IniFilename = NULL;
 	#endif
@@ -48,7 +52,10 @@ void dae::Renderer::Render() const
 	ImGui_ImplSDL3_NewFrame();
 	ImGui::NewFrame();
 
-	ImGui::ShowDemoWindow(); // Test
+	// ImGui::ShowDemoWindow();
+
+	DrawExercise1();
+	DrawExercise2();
 
 	ImGui::Render();
 
@@ -65,6 +72,7 @@ void dae::Renderer::Render() const
 
 void dae::Renderer::Destroy()
 {
+	ImPlot::DestroyContext();
 	ImGui_ImplSDLRenderer3_Shutdown();
 	ImGui_ImplSDL3_Shutdown();
 	ImGui::DestroyContext();
@@ -74,6 +82,66 @@ void dae::Renderer::Destroy()
 		SDL_DestroyRenderer(m_renderer);
 		m_renderer = nullptr;
 	}
+}
+
+void dae::Renderer::DrawExercise1() {
+	if (ImGui::Begin("Exercise 1")) {
+		ImGui::InputInt("Samples", &GetInstance().m_Exercise1_Samples);
+		GetInstance().m_Exercise1_Samples = std::max(GetInstance().m_Exercise1_Samples, 1);
+
+		if (ImGui::Button("Thrash the cache")) {
+			GetInstance().m_Exercise1_Timings.clear();
+			const int length = 67108864;
+			int* arr = new int[length];
+			int step = 1;
+			while (step <= 1024) {
+				const auto start = std::chrono::high_resolution_clock::now();
+				for (int i = 0; i < length; i += step) arr[i] *= 2;
+				step *= 2;
+				const auto end = std::chrono::high_resolution_clock::now();
+				const auto total = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
+				std::cout << step << " " << total << "\n";
+				GetInstance().m_Exercise1_Timings.push_back((int)total);
+			}
+			delete[] arr;
+		}
+		if (!GetInstance().m_Exercise1_Timings.empty()) {
+			ImPlot::BeginPlot("##timings_plot");
+			ImPlot::PlotLine("##timings", GetInstance().m_Exercise1_Timings.data(), (int)GetInstance().m_Exercise1_Timings.size());
+			ImPlot::EndPlot();
+		}
+	}
+	ImGui::End();
+}
+
+void dae::Renderer::DrawExercise2() {
+	if (ImGui::Begin("Exercise 2")) {
+		ImGui::InputInt("Samples", &GetInstance().m_Exercise2_Samples);
+		GetInstance().m_Exercise2_Samples = std::max(GetInstance().m_Exercise2_Samples, 1);
+
+		if (ImGui::Button("Thrash the cache with gameobject3D")) {
+			GetInstance().m_Exercise2_Timings.clear();
+			const int length = 67108864;
+			_Exercise2_GameObject* arr = new _Exercise2_GameObject[length];
+			int step = 1;
+			while (step <= 1024) {
+				const auto start = std::chrono::high_resolution_clock::now();
+				for (int i = 0; i < length; i += step) arr[i].ID *= 2;
+				step *= 2;
+				const auto end = std::chrono::high_resolution_clock::now();
+				const auto total = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
+				std::cout << step << " " << total << "\n";
+				GetInstance().m_Exercise2_Timings.push_back((int)total);
+			}
+			delete[] arr;
+		}
+		if (!GetInstance().m_Exercise2_Timings.empty()) {
+			ImPlot::BeginPlot("##timings_plot2");
+			ImPlot::PlotLine("##timings2", GetInstance().m_Exercise2_Timings.data(), (int)GetInstance().m_Exercise2_Timings.size());
+			ImPlot::EndPlot();
+		}
+	}
+	ImGui::End();
 }
 
 void dae::Renderer::RenderTexture(const Texture2D& texture, const float x, const float y) const
