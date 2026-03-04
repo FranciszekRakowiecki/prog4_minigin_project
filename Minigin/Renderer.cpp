@@ -91,18 +91,41 @@ void dae::Renderer::DrawExercise1() {
 
 		if (ImGui::Button("Thrash the cache")) {
 			GetInstance().m_Exercise1_Timings.clear();
-			const int length = 67108864;
+			const int length = 4194304;
 			int* arr = new int[length];
-			int step = 1;
-			while (step <= 1024) {
-				const auto start = std::chrono::high_resolution_clock::now();
-				for (int i = 0; i < length; i += step) arr[i] *= 2;
-				step *= 2;
-				const auto end = std::chrono::high_resolution_clock::now();
-				const auto total = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
-				std::cout << step << " " << total << "\n";
-				GetInstance().m_Exercise1_Timings.push_back((int)total);
+
+			int count = 0;
+
+			{
+				int step = 1;
+				while (step <= 1024) {
+					count++;
+					step *= 2;
+				}
 			}
+
+			std::cout << count << "\n";
+
+			GetInstance().m_Exercise1_Timings.resize(count);
+
+			for (int index = 0; index < GetInstance().m_Exercise1_Samples; ++index) {
+				int step = 1;
+				int c = 0;
+				while (step <= 1024) {
+					const auto start = std::chrono::high_resolution_clock::now();
+					for (int i = 0; i < length; i += step) arr[i] *= 2;
+					step *= 2;
+					const auto end = std::chrono::high_resolution_clock::now();
+					const auto total = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
+					std::cout << step << " " << total << "\n";
+					GetInstance().m_Exercise1_Timings[c] += (int)total;
+					c++;
+				}
+			}
+			for (int index = 0; index < (int)GetInstance().m_Exercise1_Timings.size(); ++index) {
+				GetInstance().m_Exercise1_Timings[index] /= GetInstance().m_Exercise1_Samples;
+			}
+
 			delete[] arr;
 		}
 		if (!GetInstance().m_Exercise1_Timings.empty()) {
@@ -123,15 +146,34 @@ void dae::Renderer::DrawExercise2() {
 			GetInstance().m_Exercise2_Timings.clear();
 			const int length = 4194304;
 			_Exercise2_GameObject* arr = new _Exercise2_GameObject[length];
-			int step = 1;
-			while (step <= 1024) {
-				const auto start = std::chrono::high_resolution_clock::now();
-				for (int i = 0; i < length; i += step) arr[i].ID *= 2;
-				step *= 2;
-				const auto end = std::chrono::high_resolution_clock::now();
-				const auto total = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
-				std::cout << step << " " << total << "\n";
-				GetInstance().m_Exercise2_Timings.push_back((int)total);
+			int count = 0;
+
+			{
+				int step = 1;
+				while (step <= 1024) {
+					count++;
+					step *= 2;
+				}
+			}
+
+			GetInstance().m_Exercise2_Timings.resize(count);
+
+			for (int index = 0; index < GetInstance().m_Exercise2_Samples; ++index) {
+				int step = 1;
+				int c = 0;
+				while (step <= 1024) {
+					const auto start = std::chrono::high_resolution_clock::now();
+					for (int i = 0; i < length; i += step) arr[i].ID *= 2;
+					step *= 2;
+					const auto end = std::chrono::high_resolution_clock::now();
+					const auto total = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
+					std::cout << step << " " << total << "\n";
+					GetInstance().m_Exercise2_Timings[c] += (int)total;
+					c++;
+				}
+			}
+			for (int index = 0; index < (int)GetInstance().m_Exercise2_Timings.size(); ++index) {
+				GetInstance().m_Exercise2_Timings[index] /= GetInstance().m_Exercise2_Samples;
 			}
 			delete[] arr;
 		}
