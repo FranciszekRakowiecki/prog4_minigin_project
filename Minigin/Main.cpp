@@ -1,3 +1,5 @@
+#define WIN32_LEAN_AND_MEAN
+
 #include <iostream>
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_main.h>

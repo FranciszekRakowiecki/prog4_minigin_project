@@ -5,6 +5,8 @@
 
 #include <chrono>
 
+#define WIN32_LEAN_AND_MEAN
+#include <imgui.h>
 #include <implot.h>
 #include "SceneManager.h"
 #include "Texture2D.h"
