@@ -30,18 +30,16 @@ static void load()
 	go->SetPosition(358, 180);
 	scene.Add(std::move(go));
 
-	dae::GameObject* go1 = new dae::GameObject();
-	go1->SetTexture("packerman.png");
-	go1->SetPosition(0, 0);
-	dae::Reference<dae::ExampleRotator> rotator2 = go1->AddComponent<dae::ExampleRotator>();
-	rotator2->rotatorSpeed = 1.0f;
+	go = std::make_unique<dae::GameObject>();
+	go->SetTexture("packerman.png");
+	go->SetPosition(400, 180);
+	go->AddComponent<dae::ExampleMovementKeyboard>();
+	scene.Add(std::move(go));
 
 	go = std::make_unique<dae::GameObject>();
-	go1->SetParent(go.get());
 	go->SetTexture("packerman.png");
 	go->SetPosition(378, 180);
-	dae::Reference<dae::ExampleRotator> rotator = go->AddComponent<dae::ExampleRotator>();
-	rotator->rotatorSpeed = -0.5f;
+	go->AddComponent<dae::ExampleMovementDPAD>();
 	scene.Add(std::move(go));
 
 	auto font = dae::ResourceManager::GetInstance().LoadFont("Lingua.otf", 36);

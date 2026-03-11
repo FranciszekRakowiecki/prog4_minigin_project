@@ -77,12 +77,15 @@ dae::Minigin::Minigin(const std::filesystem::path& dataPath)
 		throw std::runtime_error(std::string("SDL_CreateWindow Error: ") + SDL_GetError());
 	}
 
+	m_Input = new Input(this, g_window);
+
 	Renderer::GetInstance().Init(g_window);
 	ResourceManager::GetInstance().Init(dataPath);
 }
 
 dae::Minigin::~Minigin()
 {
+	delete m_Input;
 	Renderer::GetInstance().Destroy();
 	SDL_DestroyWindow(g_window);
 	g_window = nullptr;
@@ -110,9 +113,15 @@ void dae::Minigin::RunOneFrame()
 	if (delta < m_TargetMS)
 		return;
 
+	m_Input->pollEvents();
+
 	m_LastFrame = GameTime::GetInstance().GetTime();
 	GameTime::GetInstance().SetDeltaTime(delta);
-	m_quit = !InputManager::GetInstance().ProcessInput();
+	// m_quit = !InputManager::GetInstance().ProcessInput();
 	SceneManager::GetInstance().Update();
 	Renderer::GetInstance().Render();
+}
+
+void dae::Minigin::Stop() {
+	m_quit = true;
 }

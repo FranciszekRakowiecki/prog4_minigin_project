@@ -3,10 +3,14 @@
 #include <functional>
 #include <filesystem>
 
+#include "Input.h"
+
 namespace dae
 {
 	class Minigin final
 	{
+		Input* m_Input;
+
 		bool m_quit{};
 
 		float m_LastFrame{};
@@ -16,6 +20,8 @@ namespace dae
 		~Minigin();
 		void Run(const std::function<void()>& load);
 		void RunOneFrame();
+
+		void Stop();
 
 		Minigin(const Minigin& other) = delete;
 		Minigin(Minigin&& other) = delete;

@@ -17,7 +17,9 @@ else()
           Minigin/GameTime.cpp
           Minigin/GameTime.h
           Minigin/Component.cpp
-          Minigin/Component.h)
+          Minigin/Component.h
+          Minigin/Input.cpp
+          Minigin/Input.h)
 endif()
 
 # list source files here
@@ -297,4 +299,8 @@ else()
   add_custom_command(TARGET ${TARGET_NAME} POST_BUILD
     COMMAND "${CMAKE_COMMAND}" -E copy_directory "${CMAKE_CURRENT_SOURCE_DIR}/Data" "$<TARGET_FILE_DIR:${TARGET_NAME}>/Data"
   )
+endif()
+
+if(WIN32)
+  target_link_libraries(${TARGET_NAME} PUBLIC Xinput)
 endif()

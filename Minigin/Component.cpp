@@ -5,8 +5,10 @@
 #include "Component.h"
 
 #include <iostream>
+#include <Xinput.h>
 
 #include "GameTime.h"
+#include "Input.h"
 #include "TextObject.h"
 
 void dae::Component::Destroy() {
@@ -61,4 +63,54 @@ void dae::ExampleRotator::Update() {
 
 void dae::ExampleRotator::Start() {
     offset = GetParent()->transform.GetPosition();
+}
+
+dae::ExampleMovementKeyboard::ExampleMovementKeyboard() :
+forward{Input::KEY(SDL_SCANCODE_W)},
+back{Input::KEY(SDL_SCANCODE_S)},
+left{Input::KEY(SDL_SCANCODE_A)},
+right{Input::KEY(SDL_SCANCODE_D)}
+{
+
+}
+
+void dae::ExampleMovementKeyboard::Update() {
+    const float deltaTime = GameTime::GetInstance().GetDeltaTime();
+
+    const float x = (right->isPressed() ? 1.0f : 0.0f) + (left->isPressed() ? -1.0f : 0.0f);
+    const float y = (forward->isPressed() ? 1.0f : 0.0f) + (back->isPressed() ? -1.0f : 0.0f);
+
+    GameObject* parent = GetParent();
+
+    parent->transform.SetWorldPosition(parent->transform.GetWorldPosition() + glm::vec3{ x, y, 0.0f } * deltaTime * 20.0f);
+}
+
+int dae::ExampleMovementKeyboard::GetFlags() {
+    return COMPONENT_HAS_UPDATE;
+}
+
+dae::ExampleMovementDPAD::ExampleMovementDPAD() :
+forward{Input::GAMEPAD_BUTTON(XINPUT_GAMEPAD_DPAD_UP)},
+back{Input::GAMEPAD_BUTTON(XINPUT_GAMEPAD_DPAD_DOWN)},
+left{Input::GAMEPAD_BUTTON(XINPUT_GAMEPAD_DPAD_LEFT)},
+right{Input::GAMEPAD_BUTTON(XINPUT_GAMEPAD_DPAD_RIGHT)}
+{
+    std::cout << "AGENDA " << forward->button << std::endl;
+}
+
+void dae::ExampleMovementDPAD::Update() {
+    const float deltaTime = GameTime::GetInstance().GetDeltaTime();
+
+    std::cout << forward->isPressed() << std::endl;
+
+    const float x = (right->isPressed() ? 1.0f : 0.0f) + (left->isPressed() ? -1.0f : 0.0f);
+    const float y = (forward->isPressed() ? 1.0f : 0.0f) + (back->isPressed() ? -1.0f : 0.0f);
+
+    GameObject* parent = GetParent();
+
+    parent->transform.SetWorldPosition(parent->transform.GetWorldPosition() + glm::vec3{ x, y, 0.0f } * deltaTime * 20.0f);
+}
+
+int dae::ExampleMovementDPAD::GetFlags() {
+    return COMPONENT_HAS_UPDATE;
 }

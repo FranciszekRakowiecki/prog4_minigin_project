@@ -10,6 +10,14 @@
 #include "glm/vec3.hpp"
 
 namespace dae {
+    struct InputGamepadButton;
+}
+
+namespace dae {
+    struct InputKey;
+}
+
+namespace dae {
     class GameObject;
 
 #define COMPONENT_HAS_UPDATE 1
@@ -112,6 +120,34 @@ namespace dae {
         void Start() override;
     private:
         glm::vec3 offset;
+    };
+
+    class ExampleMovementKeyboard : public Component {
+        const InputKey* forward;
+        const InputKey* back;
+        const InputKey* left;
+        const InputKey* right;
+
+        public:
+            ExampleMovementKeyboard();
+
+            void Update() override;
+            int GetFlags() override;
+
+    };
+
+    class ExampleMovementDPAD : public Component {
+        const InputGamepadButton* forward;
+        const InputGamepadButton* back;
+        const InputGamepadButton* left;
+        const InputGamepadButton* right;
+
+    public:
+        ExampleMovementDPAD();
+
+        void Update() override;
+        int GetFlags() override;
+
     };
 
     // Tried to get interfaces to work but it just wont give
