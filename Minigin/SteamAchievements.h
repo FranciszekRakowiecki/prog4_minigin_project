@@ -33,7 +33,6 @@ struct Achievement_t
 
 class CSteamAchievements
 {
-#if USE_STEAMWORKS
 private:
     int64 m_iAppID; // Our current AppID
     Achievement_t *m_pAchievements; // Achievements data
@@ -51,7 +50,6 @@ public:
         m_CallbackUserStatsStored );
     STEAM_CALLBACK( CSteamAchievements, OnAchievementStored,
         UserAchievementStored_t, m_CallbackAchievementStored );
-#endif
 };
 
 

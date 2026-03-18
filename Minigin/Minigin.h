@@ -21,9 +21,7 @@ namespace dae
 
 		bool m_quit{};
 
-		#if USE_STEAMWORKS
 		std::unique_ptr<CSteamAchievements> m_Achievements;
-		#endif
 
 		float m_LastFrame{};
 		const float m_TargetMS{ 1.0f / 60.0f };

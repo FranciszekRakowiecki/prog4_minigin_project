@@ -6,17 +6,18 @@
 
 #include <iostream>
 
-#if USE_STEAMWORKS
 CSteamAchievements::CSteamAchievements(Achievement_t *Achievements, int NumAchievements):
  m_iAppID( 0 ),
  m_bInitialized( false ),
  m_CallbackUserStatsStored( this, &CSteamAchievements::OnUserStatsStored ),
  m_CallbackAchievementStored( this, &CSteamAchievements::OnAchievementStored )
 {
+#if USE_STEAMWORKS
     m_iAppID = SteamUtils()->GetAppID();
     m_pAchievements = Achievements;
     m_iNumAchievements = NumAchievements;
     m_bInitialized = Initialize();
+#endif
 }
 
 CSteamAchievements::~CSteamAchievements() {
@@ -25,6 +26,7 @@ CSteamAchievements::~CSteamAchievements() {
 
 bool CSteamAchievements::Initialize()
 {
+#if USE_STEAMWORKS
     // Is Steam loaded? If not we can't get stats.
     if ( NULL == SteamUserStats() || NULL == SteamUser() )
     {
@@ -35,12 +37,14 @@ bool CSteamAchievements::Initialize()
     {
         return false;
     }
+#endif
 
     return true;
 }
 
 bool CSteamAchievements::SetAchievement(const char* ID)
 {
+#if USE_STEAMWORKS
     // Have we received a call back from Steam yet?
     if (m_bInitialized)
     {
@@ -48,11 +52,13 @@ bool CSteamAchievements::SetAchievement(const char* ID)
         return SteamUserStats()->StoreStats();
     }
     // If not then we can't set achievements yet
+#endif
     return false;
 }
 
 void CSteamAchievements::OnUserStatsStored( UserStatsStored_t *pCallback )
 {
+#if USE_STEAMWORKS
     // we may get callbacks for other games' stats arriving, ignore them
     if ( uint64(m_iAppID) == pCallback->m_nGameID )
     {
@@ -67,14 +73,16 @@ void CSteamAchievements::OnUserStatsStored( UserStatsStored_t *pCallback )
             std::cout << ( buffer ) << std::endl;
         }
     }
+#endif
 }
 
 void CSteamAchievements::OnAchievementStored( UserAchievementStored_t *pCallback )
 {
+#if USE_STEAMWORKS
     // we may get callbacks for other games' stats arriving, ignore them
     if ( uint64(m_iAppID) == pCallback->m_nGameID )
     {
         std::cout << ( "Stored Achievement for Steam\n" );
     }
-}
 #endif
+}
