@@ -13,7 +13,7 @@ void Subject::addObserver(IObserver *obs) {
 }
 
 void Subject::removeObserver(IObserver *obs) {
-    auto it = std::find(m_Observers.begin(), m_Observers.end(), obs);
+    auto it = std::ranges::find(m_Observers.begin(), m_Observers.end(), obs);
     m_Observers.erase(it);
 }
 

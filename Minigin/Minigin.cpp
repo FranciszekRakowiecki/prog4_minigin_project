@@ -66,6 +66,8 @@ dae::Minigin::Minigin(const std::filesystem::path& dataPath)
 		_ACH_ID( ACH_TRAVEL_FAR_SINGLE, "Orbiter" ),
 	};
 	m_Achievements = std::make_unique<CSteamAchievements>(g_Achievements, 4);
+
+	m_Achievements->Initialize();
 	PrintSDLVersion();
 	
 	if (!SDL_InitSubSystem(SDL_INIT_VIDEO))

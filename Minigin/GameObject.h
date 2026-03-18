@@ -61,7 +61,7 @@ namespace dae
 
 		template<typename T>
 		Reference<T> GetComponent() const {
-			for (int index = 0; index < GetComponentsCount(); ++index) {
+			for (int index = 0; index < int(GetComponentsCount()); ++index) {
 				Reference component{GetComponent(index)};
 				T* result = dynamic_cast<T*>(component.get());
 				if (result != nullptr) {
