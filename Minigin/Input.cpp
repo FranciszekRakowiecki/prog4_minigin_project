@@ -7,7 +7,7 @@
 #include <iostream>
 
 #define WIN32_LEAN_AND_MEAN
-#include <Windows.h>
+#include <windows.h>
 #include <Xinput.h>
 
 #include "Minigin.h"
