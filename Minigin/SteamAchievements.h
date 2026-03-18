@@ -17,7 +17,9 @@ enum EAchievements
     ACH_TRAVEL_FAR_SINGLE = 3,
 };
 
+#if USE_STEAMWORKS
 #define _ACH_ID( id, name ) { id, #id, name, "", 0, 0 }
+#endif
 struct Achievement_t
 {
     int m_eAchievementID;
@@ -31,7 +33,7 @@ struct Achievement_t
 class CSteamAchievements
 {
 private:
-    int64 m_iAppID; // Our current AppID
+    long long m_iAppID; // Our current AppID
     Achievement_t *m_pAchievements; // Achievements data
     int m_iNumAchievements; // The number of Achievements
     bool m_bInitialized; // Are we ready to use the API?
@@ -43,10 +45,12 @@ public:
     bool Initialize();
     bool SetAchievement(const char* ID);
 
+#if USE_STEAMWORKS
     STEAM_CALLBACK( CSteamAchievements, OnUserStatsStored, UserStatsStored_t,
         m_CallbackUserStatsStored );
     STEAM_CALLBACK( CSteamAchievements, OnAchievementStored,
         UserAchievementStored_t, m_CallbackAchievementStored );
+#endif
 };
 
 

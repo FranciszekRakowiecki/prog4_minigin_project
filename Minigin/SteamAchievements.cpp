@@ -8,9 +8,12 @@
 
 CSteamAchievements::CSteamAchievements(Achievement_t *Achievements, int NumAchievements):
  m_iAppID( 0 ),
- m_bInitialized( false ),
+ m_bInitialized( false )
+#if USE_STEAMWORKS
+,
  m_CallbackUserStatsStored( this, &CSteamAchievements::OnUserStatsStored ),
  m_CallbackAchievementStored( this, &CSteamAchievements::OnAchievementStored )
+#endif
 {
 #if USE_STEAMWORKS
     m_iAppID = SteamUtils()->GetAppID();

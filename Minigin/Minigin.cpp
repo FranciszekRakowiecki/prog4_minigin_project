@@ -58,7 +58,7 @@ void PrintSDLVersion()
 
 dae::Minigin::Minigin(const std::filesystem::path& dataPath)
 {
-	Achievement_t g_Achievements[] =
+	static Achievement_t g_Achievements[] =
 	{
 		_ACH_ID( ACH_WIN_ONE_GAME, "Winner" ),
 		_ACH_ID( ACH_WIN_100_GAMES, "Champion" ),
@@ -67,9 +67,8 @@ dae::Minigin::Minigin(const std::filesystem::path& dataPath)
 	};
 	m_Achievements = std::make_unique<CSteamAchievements>(g_Achievements, 4);
 
-	m_Achievements->Initialize();
 	PrintSDLVersion();
-	
+
 	if (!SDL_InitSubSystem(SDL_INIT_VIDEO))
 	{
 		SDL_Log("Renderer error: %s", SDL_GetError());
