@@ -1,3 +1,10 @@
+#if USE_STEAMWORKS
+#pragma warning (push)
+#pragma warning (disable:4996)
+#include <steam_api.h>
+#pragma warning (pop)
+#endif
+
 #define WIN32_LEAN_AND_MEAN
 
 #include <iostream>
@@ -20,7 +27,7 @@
 #include <filesystem>
 namespace fs = std::filesystem;
 
-static void load()
+static void load(CSteamAchievements* achievements)
 {
 	auto& scene = dae::SceneManager::GetInstance().CreateScene();
 
@@ -39,6 +46,7 @@ static void load()
 	go = std::make_unique<dae::GameObject>();
 	playerOne = go.get();
 	go->SetTexture("packerman.png");
+	go->AddComponent<PlayerHealth>();
 	go->SetPosition(400, 180);
 	go->AddComponent<dae::ExampleMovementKeyboard>();
 	scene.Add(std::move(go));
@@ -46,6 +54,7 @@ static void load()
 	go = std::make_unique<dae::GameObject>();
 	playerTwo = go.get();
 	go->SetTexture("packerman.png");
+	go->AddComponent<PlayerHealth>();
 	go->SetPosition(378, 180);
 	go->AddComponent<dae::ExampleMovementDPAD>();
 	scene.Add(std::move(go));
@@ -56,10 +65,23 @@ static void load()
 	to->SetPosition(292, 20);
 	scene.Add(std::move(to));
 
+	font = dae::ResourceManager::GetInstance().LoadFont("Lingua.otf", 20);
+	to = std::make_unique<dae::TextObject>("Use the D-Pad to move Pacman, X to inflict damage, A and B to pickup pellets", font);
+	to->SetColor({ 200, 200, 200, 255 });
+	to->SetPosition(0, 60);
+	scene.Add(std::move(to));
+	// font = dae::ResourceManager::GetInstance().LoadFont("Lingua.otf", 20);
+	to = std::make_unique<dae::TextObject>("Use the WSAD to move Pacman, C to inflict damage, Z and X to pickup pellets", font);
+	to->SetColor({ 200, 200, 200, 255 });
+	to->SetPosition(0, 80);
+	scene.Add(std::move(to));
+
 	go = std::make_unique<dae::GameObject>();
 	dae::Reference<LivesScoreRenderer> renderer = go->AddComponent<LivesScoreRenderer>();
 	renderer->setPlayers(playerOne,playerTwo);
-	renderer->setFont(font.get());
+	renderer->setFont(font);
+	renderer->initText();
+	renderer->setAchievements(achievements);
 	go->SetPosition(0, 100);
 	scene.Add(std::move(go));
 
@@ -72,6 +94,10 @@ static void load()
 }
 
 int main(int, char*[]) {
+#if USE_STEAMWORKS
+	if (!SteamAPI_Init())
+		std::cerr << (std::string("Fatal Error - Steam must be running to play this game (SteamAPI_Init() failed).")) << std::endl; // what about emscripten wont it crash because there is no steam launched?
+#endif
 #if __EMSCRIPTEN__
 	fs::path data_location = "";
 #else
@@ -81,5 +107,9 @@ int main(int, char*[]) {
 #endif
 	dae::Minigin engine(data_location);
 	engine.Run(load);
+
+#if USE_STEAMWORKS
+	SteamAPI_Shutdown();
+#endif
     return 0;
 }

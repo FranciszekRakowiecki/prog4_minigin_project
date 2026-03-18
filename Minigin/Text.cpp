@@ -3,6 +3,8 @@
 //
 
 #include "Text.h"
+
+#include <iostream>
 #include <stdexcept>
 #include <SDL3_ttf/SDL_ttf.h>
 #include "TextObject.h"
@@ -22,16 +24,30 @@ void dae::Text::SetColor(const SDL_Color &color) {
     m_needsUpdate = true;
 }
 
+void dae::Text::SetFont(std::shared_ptr<Font> font) {
+    m_font = font;
+}
+
 dae::Text::Text(const std::string &text, std::shared_ptr<Font> font, const SDL_Color &color) : m_needsUpdate(true), m_text(text), m_color(color), m_font(std::move(font)), m_textTexture(nullptr) {
 }
 
 void dae::Text::updateTexture() {
+    if (m_font == nullptr)
+        return;
     if (m_needsUpdate)
     {
-        const auto surf = TTF_RenderText_Blended(m_font->GetFont(), m_text.c_str(), m_text.length(), m_color);
-        if (surf == nullptr)
-        {
-            throw std::runtime_error(std::string("Render text failed: ") + SDL_GetError());
+        SDL_Surface* surf;
+        if (!m_text.empty()) {
+            surf = TTF_RenderText_Blended(m_font->GetFont(), m_text.c_str(), m_text.length(), m_color);
+            if (surf == nullptr)
+            {
+                std::string message = std::string("Render text failed: ") + SDL_GetError();
+                std::cout << message << std::endl;
+                throw std::runtime_error(message);
+            }
+        }
+        else {
+            surf = SDL_CreateSurface(1, 1, SDL_PIXELFORMAT_ABGR32);
         }
         auto texture = SDL_CreateTextureFromSurface(Renderer::GetInstance().GetSDLRenderer(), surf);
         if (texture == nullptr)

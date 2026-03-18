@@ -6,7 +6,7 @@
 #include "Texture2D.h"
 
 dae::TextObject::TextObject(const std::string& text, std::shared_ptr<Font> font, const SDL_Color& color)
-	: GameObject(), m_needsUpdate(true), m_text(text), m_color(color), m_font(std::move(font)), m_textTexture(nullptr)
+	: GameObject(), m_needsUpdate(true), m_text(text), m_color(color), m_font(font), m_textTexture(nullptr)
 { }
 
 void dae::TextObject::Update()

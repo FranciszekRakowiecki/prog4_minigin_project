@@ -133,9 +133,6 @@ void Input::pollControllers() {
     handleInputChanges(changes, bState, XINPUT_GAMEPAD_X);
     handleInputChanges(changes, bState, XINPUT_GAMEPAD_Y);
 
-    if (changes != 0)
-        std::cout << std::to_string(changes) << std::endl;
-
     gamepadButtons = bState;
 }
 

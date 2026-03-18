@@ -65,20 +65,41 @@ namespace dae {
     template<typename T>
     class Reference final {
     public:
+        Reference();
         Reference(std::weak_ptr<T> ptr);
         Reference(const Reference&);
         Reference& operator=(const Reference&);
-        Reference(Reference&&) = delete;
-        Reference& operator=(Reference&&) = delete;
+        Reference(Reference&&);
+        Reference& operator=(Reference&&);
 
         T* operator->() const;
         T& operator*() const;
+        T* get() const { if (*this) return  m_Ptr.lock().get(); return nullptr; };
+        std::weak_ptr<T> getWeak() const { return m_Ptr; }
+        template<typename any>
+        bool operator==(const Reference<any> &other) const {
+            return other.get() == m_Ptr.lock().get();
+        }
 
         explicit operator bool() const { return !m_Ptr.expired(); }
 
     private:
         std::weak_ptr<T> m_Ptr;
     };
+
+    template<typename to, typename from>
+    inline Reference<to> StaticCastReference(Reference<from> &other) {
+        return Reference<to>(std::static_pointer_cast<to>(other.getWeak().lock()));
+    }
+    template<typename to, typename from>
+    inline Reference<to> DynamicCastReference(Reference<from> &other) {
+        return Reference<to>(std::dynamic_pointer_cast<to>(other.getWeak().lock()));
+    }
+
+    template<typename T>
+    Reference<T>::Reference() : m_Ptr() {
+
+    }
 
     template<typename T>
     dae::Reference<T>::Reference(std::weak_ptr<T> ptr) : m_Ptr(ptr) {
@@ -93,6 +114,17 @@ namespace dae {
     template<typename T>
     dae::Reference<T> & dae::Reference<T>::operator=(const Reference & other) {
         this->m_Ptr = other.m_Ptr;
+    }
+
+    template<typename T>
+    Reference<T>::Reference(Reference &&other) {
+        m_Ptr = std::move(other.m_Ptr);
+    }
+
+    template<typename T>
+    Reference<T> & Reference<T>::operator=(Reference &&other) {
+        m_Ptr = std::move(other.m_Ptr);
+        return *this;
     }
 
     template<typename T>

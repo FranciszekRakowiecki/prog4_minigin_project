@@ -49,30 +49,26 @@ namespace dae
 
 		// Trying to mirror 1 to 1 with how unity does it ish
 
-		template<typename T, typename = std::enable_if<std::is_base_of_v<Component, T>>>
+		template<typename T = Component>
 		Reference<T> AddComponent() {
 			std::shared_ptr<T> component = std::make_shared<T>();
-			m_Components.emplace_back(component);
 			component->m_Parent = this;
 			component->flags = component->GetFlags();
-
-			component->Start();
+			m_Components.emplace_back(component);
 
 			return Reference<T>(component);
 		}
 
-		template<typename T, typename = std::enable_if<std::is_base_of_v<Component, T>>>
+		template<typename T>
 		Reference<T> GetComponent() const {
-			for (int index = 0; index < (int)GetComponentsCount(); ++index) {
-				Reference<Component> component = GetComponent(index);
-				if (component) {
-					T* result = dynamic_cast<T*>(component);
-					if (result != nullptr) {
-						return Reference<T>(result);
-					}
+			for (int index = 0; index < GetComponentsCount(); ++index) {
+				Reference component{GetComponent(index)};
+				T* result = dynamic_cast<T*>(component.get());
+				if (result != nullptr) {
+					return StaticCastReference<T>(component);
 				}
 			}
-			return Reference<T>(nullptr);
+			return Reference<T>();
 		}
 
 		GameObject* GetParent() const;

@@ -100,13 +100,11 @@ back{Input::GAMEPAD_BUTTON(XINPUT_GAMEPAD_DPAD_DOWN)},
 left{Input::GAMEPAD_BUTTON(XINPUT_GAMEPAD_DPAD_LEFT)},
 right{Input::GAMEPAD_BUTTON(XINPUT_GAMEPAD_DPAD_RIGHT)}
 {
-    std::cout << "AGENDA " << forward->button << std::endl;
+
 }
 
 void dae::ExampleMovementDPAD::Update() {
     const float deltaTime = GameTime::GetInstance().GetDeltaTime();
-
-    std::cout << forward->isPressed() << std::endl;
 
     const float x = (right->isPressed() ? 1.0f : 0.0f) + (left->isPressed() ? -1.0f : 0.0f);
     const float y = (forward->isPressed() ? 1.0f : 0.0f) + (back->isPressed() ? -1.0f : 0.0f);

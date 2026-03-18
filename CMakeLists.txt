@@ -25,7 +25,10 @@ else()
           Minigin/DataDisplayComponents.cpp
           Minigin/DataDisplayComponents.h
           Minigin/Text.cpp
-          Minigin/Text.h)
+          Minigin/Text.h
+          Minigin/SteamAchievements.cpp
+          Minigin/SteamAchievements.h
+  )
 endif()
 
 # list source files here
@@ -44,6 +47,10 @@ add_executable(${TARGET_NAME} ${TARGET_PARAM}
   Minigin/Transform.cpp
   Minigin/Component.cpp
   Minigin/GameTime.cpp
+  Minigin/Input.cpp
+  Minigin/Events.cpp
+  Minigin/DataDisplayComponents.cpp
+  Minigin/Text.cpp
 )
 
 # enable c++20 features

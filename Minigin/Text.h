@@ -19,8 +19,9 @@ namespace dae {
     public:
         void SetText(const std::string& text);
         void SetColor(const SDL_Color& color);
+        void SetFont(std::shared_ptr<Font> font);
 
-        Text(const std::string& text, std::shared_ptr<Font> font, const SDL_Color& color = { 255, 255, 255, 255 });
+        Text(const std::string& text = "", std::shared_ptr<Font> font = nullptr, const SDL_Color& color = { 255, 255, 255, 255 });
 
         Text(const Text& other) = delete;
         Text(Text&& other) = delete;
