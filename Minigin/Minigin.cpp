@@ -68,9 +68,10 @@ dae::Minigin::Minigin(const std::filesystem::path& dataPath)
 	};
 	m_Achievements = std::make_unique<CSteamAchievements>(g_Achievements, 4);
 #else
-	static Achievement_t g_Achievements[] = {};
+	static Achievement_t g_Achievements[] = { { 0, "a", "a", "a", false, 0 }};
 	m_Achievements = std::make_unique<CSteamAchievements>(g_Achievements, 0);
 #endif
+
 
 	PrintSDLVersion();
 
