@@ -19,7 +19,13 @@ else()
           Minigin/Component.cpp
           Minigin/Component.h
           Minigin/Input.cpp
-          Minigin/Input.h)
+          Minigin/Input.h
+          Minigin/Events.cpp
+          Minigin/Events.h
+          Minigin/DataDisplayComponents.cpp
+          Minigin/DataDisplayComponents.h
+          Minigin/Text.cpp
+          Minigin/Text.h)
 endif()
 
 # list source files here

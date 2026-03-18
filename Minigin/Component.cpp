@@ -33,6 +33,9 @@ void dae::Component::Start() {
 void dae::Component::Update() {
 }
 
+void dae::Component::Render() {
+}
+
 int dae::ExampleUpdateComponent::GetFlags() {
     return COMPONENT_HAS_UPDATE;
 }

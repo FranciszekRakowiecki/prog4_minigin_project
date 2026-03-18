@@ -64,6 +64,10 @@ void dae::GameObject::update_internal() {
 
 void dae::GameObject::render_internal() const {
 	Render();
+	for (const std::shared_ptr<Component>& component : m_Components) {
+		if (component->flags & COMPONENT_HAS_RENDER)
+			component->Render();
+	}
 
 	for (const auto & index : m_Children) {
 		index->render_internal();

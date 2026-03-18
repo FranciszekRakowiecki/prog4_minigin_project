@@ -3,6 +3,10 @@
 #include <SDL3/SDL.h>
 #include "Singleton.h"
 
+namespace dae {
+	class Text;
+}
+
 namespace dae
 {
 	struct _Exercise2_Transform
@@ -44,6 +48,8 @@ namespace dae
 
 		void RenderTexture(const Texture2D& texture, float x, float y) const;
 		void RenderTexture(const Texture2D& texture, float x, float y, float width, float height) const;
+		void RenderText(const Text& text, float x, float y) const;
+		void RenderText(const Text& text, float x, float y, float width, float height) const;
 
 		SDL_Renderer* GetSDLRenderer() const;
 

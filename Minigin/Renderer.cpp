@@ -9,6 +9,7 @@
 #include <imgui.h>
 #include <implot.h>
 #include "SceneManager.h"
+#include "Text.h"
 #include "Texture2D.h"
 #include "backends/imgui_impl_sdl3.h"
 #include "backends/imgui_impl_sdlrenderer3.h"
@@ -56,16 +57,16 @@ void dae::Renderer::Render() const
 
 	// ImGui::ShowDemoWindow();
 
-	DrawExercise1();
-	DrawExercise2();
-
-	ImGui::Render();
+	// DrawExercise1();
+	// DrawExercise2();
 
 	const auto& color = GetBackgroundColor();
 	SDL_SetRenderDrawColor(m_renderer, color.r, color.g, color.b, color.a);
 	SDL_RenderClear(m_renderer);
 
 	SceneManager::GetInstance().Render();
+
+	ImGui::Render();
 
 	ImGui_ImplSDLRenderer3_RenderDrawData(ImGui::GetDrawData(), m_renderer);
 
@@ -205,6 +206,14 @@ void dae::Renderer::RenderTexture(const Texture2D& texture, const float x, const
 	dst.w = width;
 	dst.h = height;
 	SDL_RenderTexture(GetSDLRenderer(), texture.GetSDLTexture(), nullptr, &dst);
+}
+
+void dae::Renderer::RenderText(const Text &text, float x, float y) const {
+	RenderTexture(*text.m_textTexture, x, y);
+}
+
+void dae::Renderer::RenderText(const Text &text, float x, float y, float width, float height) const {
+	RenderTexture(*text.m_textTexture, x, y,width, height);
 }
 
 SDL_Renderer* dae::Renderer::GetSDLRenderer() const { return m_renderer; }

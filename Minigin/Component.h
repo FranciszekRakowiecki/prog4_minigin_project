@@ -21,6 +21,7 @@ namespace dae {
     class GameObject;
 
 #define COMPONENT_HAS_UPDATE 1
+#define COMPONENT_HAS_RENDER 2
     // Add more
 
     // Components are not allowed to have constructor arguments
@@ -44,6 +45,7 @@ namespace dae {
         virtual int GetFlags(); // Checking using bit masks is faster than doing dynamic_cast<>
         virtual void Start();
         virtual void Update();
+        virtual void Render();
 
     private:
         GameObject* m_Parent{};

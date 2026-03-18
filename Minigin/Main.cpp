@@ -5,6 +5,7 @@
 #include <SDL3/SDL_main.h>
 
 #include "Component.h"
+#include "DataDisplayComponents.h"
 
 #if _DEBUG && __has_include(<vld.h>)
 #include <vld.h>
@@ -32,13 +33,18 @@ static void load()
 	go->SetPosition(358, 180);
 	scene.Add(std::move(go));
 
+	dae::GameObject* playerOne;
+	dae::GameObject* playerTwo;
+
 	go = std::make_unique<dae::GameObject>();
+	playerOne = go.get();
 	go->SetTexture("packerman.png");
 	go->SetPosition(400, 180);
 	go->AddComponent<dae::ExampleMovementKeyboard>();
 	scene.Add(std::move(go));
 
 	go = std::make_unique<dae::GameObject>();
+	playerTwo = go.get();
 	go->SetTexture("packerman.png");
 	go->SetPosition(378, 180);
 	go->AddComponent<dae::ExampleMovementDPAD>();
@@ -49,6 +55,13 @@ static void load()
 	to->SetColor({ 255, 255, 0, 255 });
 	to->SetPosition(292, 20);
 	scene.Add(std::move(to));
+
+	go = std::make_unique<dae::GameObject>();
+	dae::Reference<LivesScoreRenderer> renderer = go->AddComponent<LivesScoreRenderer>();
+	renderer->setPlayers(playerOne,playerTwo);
+	renderer->setFont(font.get());
+	go->SetPosition(0, 100);
+	scene.Add(std::move(go));
 
 	auto fps = std::make_unique<dae::TextObject>("FPS: ", font);
 	fps->SetColor({ 255, 255, 255, 255 });
