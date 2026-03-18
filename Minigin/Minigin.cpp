@@ -58,6 +58,7 @@ void PrintSDLVersion()
 
 dae::Minigin::Minigin(const std::filesystem::path& dataPath)
 {
+#if USE_STEAMWORKS
 	static Achievement_t g_Achievements[] =
 	{
 		_ACH_ID( ACH_WIN_ONE_GAME, "Winner" ),
@@ -66,6 +67,10 @@ dae::Minigin::Minigin(const std::filesystem::path& dataPath)
 		_ACH_ID( ACH_TRAVEL_FAR_SINGLE, "Orbiter" ),
 	};
 	m_Achievements = std::make_unique<CSteamAchievements>(g_Achievements, 4);
+#else
+	static Achievement_t g_Achievements[] = {};
+	m_Achievements = std::make_unique<CSteamAchievements>(g_Achievements, 0);
+#endif
 
 	PrintSDLVersion();
 

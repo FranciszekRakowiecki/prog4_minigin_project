@@ -15,10 +15,10 @@ CSteamAchievements::CSteamAchievements(Achievement_t *Achievements, int NumAchie
  m_CallbackAchievementStored( this, &CSteamAchievements::OnAchievementStored )
 #endif
 {
-#if USE_STEAMWORKS
-    m_iAppID = SteamUtils()->GetAppID();
     m_pAchievements = Achievements;
     m_iNumAchievements = NumAchievements;
+#if USE_STEAMWORKS
+    m_iAppID = SteamUtils()->GetAppID();
     m_bInitialized = Initialize();
 #endif
 }
@@ -59,6 +59,7 @@ bool CSteamAchievements::SetAchievement(const char* ID)
     return false;
 }
 
+#if USE_STEAMWORKS
 void CSteamAchievements::OnUserStatsStored( UserStatsStored_t *pCallback )
 {
 #if USE_STEAMWORKS
@@ -89,3 +90,5 @@ void CSteamAchievements::OnAchievementStored( UserAchievementStored_t *pCallback
     }
 #endif
 }
+
+#endif
