@@ -6,9 +6,11 @@
 
 #include <iostream>
 
+#ifndef __EMSCRIPTEN__
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #include <Xinput.h>
+#endif
 
 #include "Minigin.h"
 #include <SDL3/SDL.h>
@@ -16,6 +18,56 @@
 using namespace dae;
 
 Input* Input::Instance{nullptr};
+
+class Input::GamepadImpl {
+public:
+    Input* input;
+    GamepadImpl(Input* input);
+    virtual ~GamepadImpl() = default;
+
+    int gamepadButtons{};
+    virtual void pollControllers(std::map<GamepadButton, InputGamepadButton*>&) {};
+    virtual void pollAxis(InputAxis* leftThumb, InputAxis* rightThumb) {};
+    virtual void onGamepadDown(SDL_Event& event) {};
+    virtual void onGamepadUp(SDL_Event& event) {};
+    virtual void onJoystickMove(SDL_Event& event) {};
+    virtual int GetGamepadButtons() { return gamepadButtons; }
+    virtual void setGamepad(SDL_Gamepad*) {};
+    virtual void removeGamepad(SDL_Gamepad*) {};
+    virtual void frame() {};
+
+    void setPressed(InputGamepadButton* button, bool state) {
+        input->setPressed(button, state);
+    }
+    void setXY(InputAxis* axis, float x, float y) {
+        input->setXY(axis, x, y);
+    }
+};
+
+class GamepadImplSDL : public Input::GamepadImpl {
+public:
+    explicit GamepadImplSDL(Input *input)
+        : GamepadImpl(input) {
+    }
+
+    void onGamepadDown(SDL_Event &event) override;
+    void onGamepadUp(SDL_Event &event) override;
+    void onJoystickMove(SDL_Event &event) override;
+    void setGamepad(SDL_Gamepad *) override;
+    void removeGamepad(SDL_Gamepad *) override;
+    void frame() override;
+    void pollAxis(InputAxis *leftThumb, InputAxis *rightThumb) override;
+};
+class GamepadImplX : public Input::GamepadImpl {
+public:
+    explicit GamepadImplX(Input *input)
+        : GamepadImpl(input) {
+    }
+    void pollControllers(std::map<GamepadButton, InputGamepadButton*>& gamepadButtonActions) override;
+    void pollAxis(InputAxis *leftThumb, InputAxis *rightThumb) override;
+
+    void handleInputChanges(std::map<GamepadButton, InputGamepadButton*>& gamepadButtons, int changes, int state, int mask);
+};
 
 Input::Input(Minigin* engine, SDL_Window* window) :
     engine(engine),
@@ -25,8 +77,13 @@ Input::Input(Minigin* engine, SDL_Window* window) :
     LEFT_THUMB_STICK(new InputAxis(GAMEPAD_LEFT)),
     RIGHT_THUMB_STICK(new InputAxis(GAMEPAD_RIGHT)),
     window(window),
-    gamepadButtons(0)
+gamepadImpl(nullptr)
 {
+    #ifdef __EMSCRIPTEN__
+    gamepadImpl = std::make_unique<GamepadImplSDL>(this)
+    #else
+    gamepadImpl = std::make_unique<GamepadImplX>(this);
+    #endif
     Instance = this;
 }
 
@@ -43,7 +100,7 @@ Input::~Input() {
     for (std::pair<int, InputButton*> pair : buttonActions)
         delete pair.second;
 
-    for (std::pair<int, InputGamepadButton*> pair : gamepadButtonActions)
+    for (std::pair<GamepadButton, InputGamepadButton*> pair : gamepadButtonActions)
         delete pair.second;
 
     keyActions.clear();
@@ -52,7 +109,7 @@ Input::~Input() {
 }
 
 void Input::pollEvents() {
-    pollControllers();
+    gamepadImpl->frame();
     pollKeys();
     pollButtons();
     pollAxis();
@@ -89,51 +146,36 @@ void Input::pollEvents() {
                     button->buttonRelease(event.button.button);
                 }
                 break;
+            case SDL_EVENT_GAMEPAD_ADDED: {
+                SDL_Gamepad *gamepad = SDL_GetGamepadFromID(event.gdevice.which);
+                gamepadImpl->setGamepad(gamepad);
+            }
+                break;
+            case SDL_EVENT_GAMEPAD_REMOVED: {
+                SDL_Gamepad *gamepad = SDL_GetGamepadFromID(event.gdevice.which);
+                gamepad = SDL_GetGamepadFromID(event.gdevice.which);
+                gamepadImpl->removeGamepad(gamepad);
+            }
+                break;
+            case SDL_EVENT_GAMEPAD_BUTTON_DOWN: {
+                gamepadImpl->onGamepadDown(event);
+            }
+                break;
+            case SDL_EVENT_GAMEPAD_BUTTON_UP: {
+                gamepadImpl->onGamepadUp(event);
+            }
+                break;
+            case SDL_EVENT_GAMEPAD_AXIS_MOTION: {
+                gamepadImpl->onJoystickMove(event);
+            }
+                break;
             default:
                 break;
         }
     }
-}
 
-void Input::pollControllers() {
-    XINPUT_STATE state;
-    ZeroMemory(&state, sizeof(XINPUT_STATE));
-
-    DWORD result = XInputGetState(0, &state);
-
-    if (result != ERROR_SUCCESS) {
-        return;
-    }
-
-    LEFT_THUMB_STICK->x = float(state.Gamepad.sThumbLX) / float(SHRT_MAX);
-    LEFT_THUMB_STICK->y = float(state.Gamepad.sThumbLY) / float(SHRT_MAX);
-
-    RIGHT_THUMB_STICK->x = float(state.Gamepad.sThumbRX) / float(SHRT_MAX);
-    RIGHT_THUMB_STICK->y = float(state.Gamepad.sThumbRY) / float(SHRT_MAX);
-
-    int bState = 0;
-    bState = state.Gamepad.wButtons;
-    bState |= state.Gamepad.bLeftTrigger ? XINPUT_GAMEPAD_LEFT_TRIGGER : 0;
-    bState |= state.Gamepad.bRightTrigger ? XINPUT_GAMEPAD_RIGHT_TRIGGER : 0;
-
-    int changes = bState ^ gamepadButtons;
-
-    handleInputChanges(changes, bState, XINPUT_GAMEPAD_DPAD_UP);
-    handleInputChanges(changes, bState, XINPUT_GAMEPAD_DPAD_DOWN);
-    handleInputChanges(changes, bState, XINPUT_GAMEPAD_DPAD_LEFT);
-    handleInputChanges(changes, bState, XINPUT_GAMEPAD_DPAD_RIGHT);
-    handleInputChanges(changes, bState, XINPUT_GAMEPAD_START);
-    handleInputChanges(changes, bState, XINPUT_GAMEPAD_BACK);
-    handleInputChanges(changes, bState, XINPUT_GAMEPAD_LEFT_THUMB);
-    handleInputChanges(changes, bState, XINPUT_GAMEPAD_RIGHT_THUMB);
-    handleInputChanges(changes, bState, XINPUT_GAMEPAD_LEFT_SHOULDER);
-    handleInputChanges(changes, bState, XINPUT_GAMEPAD_RIGHT_SHOULDER);
-    handleInputChanges(changes, bState, XINPUT_GAMEPAD_A);
-    handleInputChanges(changes, bState, XINPUT_GAMEPAD_B);
-    handleInputChanges(changes, bState, XINPUT_GAMEPAD_X);
-    handleInputChanges(changes, bState, XINPUT_GAMEPAD_Y);
-
-    gamepadButtons = bState;
+    gamepadImpl->pollAxis(LEFT_THUMB_STICK, RIGHT_THUMB_STICK);
+    gamepadImpl->pollControllers(gamepadButtonActions);
 }
 
 void Input::pollKeys() {
@@ -163,17 +205,28 @@ void Input::pollAxis() {
     SCROLL_DELTA->y = 0;
 }
 
-void Input::handleInputChanges(int changes, int state, int mask) {
-    if (changes & mask)
-        if (gamepadButtonActions.contains(mask)) {
+void Input::setPressed(InputGamepadButton *button, bool state) {
+    button->pressed = state;
+}
+
+void Input::setXY(InputAxis *axis, float x, float y) {
+    axis->x = x;
+    axis->y = y;
+}
+
+void GamepadImplX::handleInputChanges(std::map<GamepadButton, InputGamepadButton*>& gamepadButtons, int changes, int state, int mask) {
+    if (changes & mask) {
+        GamepadButton key = (GamepadButton)mask;
+        if (gamepadButtons.contains(key)) {
             bool pressed = state & mask;
-            InputGamepadButton* button = gamepadButtonActions[mask];
-            button->pressed = pressed;
+            InputGamepadButton *button = gamepadButtons[key];
+            setPressed(button, pressed);
             if (pressed)
                 button->buttonPress(mask);
             else
                 button->buttonRelease(mask);
         }
+    }
 }
 
 bool InputKey::isPressed() const {
@@ -273,7 +326,7 @@ InputAxis::InputAxis(InputAxisType axis) : axisType{axis} {
 
 }
 
-InputGamepadButton::InputGamepadButton(int button) : button{button} {
+InputGamepadButton::InputGamepadButton(GamepadButton button) : button{button} {
 
 }
 
@@ -301,7 +354,7 @@ void InputGamepadButton::keyRelease(int) {
 }
 
 void InputGamepadButton::buttonPress(int _button) {
-    if (this->button != _button)
+    if (this->button != (GamepadButton)_button)
         return;
     framePress = true;
     frameRelease = false;
@@ -309,7 +362,7 @@ void InputGamepadButton::buttonPress(int _button) {
 }
 
 void InputGamepadButton::buttonRelease(int _button) {
-    if (this->button != _button)
+    if (this->button != (GamepadButton)_button)
         return;
     framePress = false;
     frameRelease = true;
@@ -332,7 +385,7 @@ const InputButton* Input::getButton(int button) {
     return buttonActions[button];
 }
 
-const InputGamepadButton* Input::getGamepadButton(int button) {
+const InputGamepadButton* Input::getGamepadButton(GamepadButton button) {
     if (gamepadButtonActions.count(button) == 0) {
         gamepadButtonActions.emplace(button, new InputGamepadButton(button));
     }
@@ -352,6 +405,10 @@ const InputAxis* Input::getScrollDelta() {
     return SCROLL_DELTA;
 }
 
+int Input::GetGamePad() const {
+    return gamepadImpl->GetGamepadButtons();
+}
+
 const InputKey* Input::KEY(int key) {
     return Instance->getKey(key);
 }
@@ -360,7 +417,7 @@ const InputButton* Input::BUTTON(int button) {
     return Instance->getButton(button);
 }
 
-const InputGamepadButton* Input::GAMEPAD_BUTTON(int button) {
+const InputGamepadButton* Input::GAMEPAD_BUTTON(GamepadButton button) {
     return Instance->getGamepadButton(button);
 }
 
@@ -375,4 +432,64 @@ const InputAxis* Input::AXIS(InputAxisType type) {
         return Instance->RIGHT_THUMB_STICK;
     else
         return Instance->CURSOR;
+}
+#ifndef __EMSCRIPTEN__
+Input::GamepadImpl::GamepadImpl(Input *input) : input(input) {
+}
+
+void GamepadImplX::pollControllers(std::map<GamepadButton, InputGamepadButton*>& gamepadButtonActions) {
+    XINPUT_STATE state;
+    ZeroMemory(&state, sizeof(XINPUT_STATE));
+
+    DWORD result = XInputGetState(0, &state);
+
+    if (result != ERROR_SUCCESS) {
+        return;
+    }
+
+    int bState = 0;
+    bState = state.Gamepad.wButtons;
+    bState |= state.Gamepad.bLeftTrigger ? XINPUT_GAMEPAD_LEFT_TRIGGER : 0;
+    bState |= state.Gamepad.bRightTrigger ? XINPUT_GAMEPAD_RIGHT_TRIGGER : 0;
+
+    int changes = bState ^ gamepadButtons;
+
+    handleInputChanges(gamepadButtonActions, changes, bState, XINPUT_GAMEPAD_DPAD_UP);
+    handleInputChanges(gamepadButtonActions, changes, bState, XINPUT_GAMEPAD_DPAD_DOWN);
+    handleInputChanges(gamepadButtonActions, changes, bState, XINPUT_GAMEPAD_DPAD_LEFT);
+    handleInputChanges(gamepadButtonActions, changes, bState, XINPUT_GAMEPAD_DPAD_RIGHT);
+    handleInputChanges(gamepadButtonActions, changes, bState, XINPUT_GAMEPAD_START);
+    handleInputChanges(gamepadButtonActions, changes, bState, XINPUT_GAMEPAD_BACK);
+    handleInputChanges(gamepadButtonActions, changes, bState, XINPUT_GAMEPAD_LEFT_THUMB);
+    handleInputChanges(gamepadButtonActions, changes, bState, XINPUT_GAMEPAD_RIGHT_THUMB);
+    handleInputChanges(gamepadButtonActions, changes, bState, XINPUT_GAMEPAD_LEFT_SHOULDER);
+    handleInputChanges(gamepadButtonActions, changes, bState, XINPUT_GAMEPAD_RIGHT_SHOULDER);
+    handleInputChanges(gamepadButtonActions, changes, bState, XINPUT_GAMEPAD_A);
+    handleInputChanges(gamepadButtonActions, changes, bState, XINPUT_GAMEPAD_B);
+    handleInputChanges(gamepadButtonActions, changes, bState, XINPUT_GAMEPAD_X);
+    handleInputChanges(gamepadButtonActions, changes, bState, XINPUT_GAMEPAD_Y);
+
+    gamepadButtons = bState;
+}
+#endif
+
+void GamepadImplX::pollAxis(InputAxis *leftThumb, InputAxis *rightThumb) {
+    XINPUT_STATE state;
+    ZeroMemory(&state, sizeof(XINPUT_STATE));
+
+    DWORD result = XInputGetState(0, &state);
+
+    if (result != ERROR_SUCCESS) {
+        return;
+    }
+
+    setXY(leftThumb, float(state.Gamepad.sThumbLX) / float(SHRT_MAX), float(state.Gamepad.sThumbLY) / float(SHRT_MAX));
+
+    // leftThumb->x = float(state.Gamepad.sThumbLX) / float(SHRT_MAX);
+    // leftThumb->y = float(state.Gamepad.sThumbLY) / float(SHRT_MAX);
+
+    setXY(rightThumb, float(state.Gamepad.sThumbRX) / float(SHRT_MAX), float(state.Gamepad.sThumbRY) / float(SHRT_MAX));
+
+    // rightThumb->x = float(state.Gamepad.sThumbRX) / float(SHRT_MAX);
+    // rightThumb->y = float(state.Gamepad.sThumbRY) / float(SHRT_MAX);
 }
