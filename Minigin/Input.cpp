@@ -57,7 +57,68 @@ public:
     void removeGamepad(SDL_Gamepad *) override;
     void frame() override;
     void pollAxis(InputAxis *leftThumb, InputAxis *rightThumb) override;
+
+    int GPBasMask(SDL_Gamepad* pad, GamepadButton mask, SDL_GamepadButton button);
 };
+
+void GamepadImplSDL::onGamepadDown(SDL_Event &event) {
+    SDL_Gamepad* gamepad = SDL_GetGamepadFromID(event.gdevice.which);
+
+    int state{0};
+    state |= GPBasMask(gamepad, GamepadButton::DPAD_UP, SDL_GAMEPAD_BUTTON_DPAD_UP);
+    state |= GPBasMask(gamepad, GamepadButton::DPAD_DOWN, SDL_GAMEPAD_BUTTON_DPAD_DOWN);
+    state |= GPBasMask(gamepad, GamepadButton::DPAD_LEFT, SDL_GAMEPAD_BUTTON_DPAD_LEFT);
+    state |= GPBasMask(gamepad, GamepadButton::DPAD_RIGHT, SDL_GAMEPAD_BUTTON_DPAD_RIGHT);
+    state |= GPBasMask(gamepad, GamepadButton::A, SDL_GAMEPAD_BUTTON_SOUTH);
+    state |= GPBasMask(gamepad, GamepadButton::B, SDL_GAMEPAD_BUTTON_EAST);
+    state |= GPBasMask(gamepad, GamepadButton::X, SDL_GAMEPAD_BUTTON_WEST);
+    state |= GPBasMask(gamepad, GamepadButton::Y, SDL_GAMEPAD_BUTTON_NORTH);
+    state |= GPBasMask(gamepad, GamepadButton::START, SDL_GAMEPAD_BUTTON_START);
+    state |= GPBasMask(gamepad, GamepadButton::BACK, SDL_GAMEPAD_BUTTON_BACK);
+    state |= GPBasMask(gamepad, GamepadButton::LEFT_SHOULDER, SDL_GAMEPAD_BUTTON_LEFT_SHOULDER);
+    state |= GPBasMask(gamepad, GamepadButton::RIGHT_SHOULDER, SDL_GAMEPAD_BUTTON_RIGHT_SHOULDER);
+    state |= GPBasMask(gamepad, GamepadButton::LEFT_THUMB, SDL_GAMEPAD_BUTTON_LEFT_STICK);
+    state |= GPBasMask(gamepad, GamepadButton::RIGHT_THUMB, SDL_GAMEPAD_BUTTON_RIGHT_STICK);
+
+    // It's at least slightly pressed, axis ranges between 0 and 32,767
+    if (SDL_GetGamepadAxis(gamepad, SDL_GAMEPAD_AXIS_LEFT_TRIGGER) > 200) {
+        state |= (int)GamepadButton::LEFT_TRIGGER;
+    }
+    if (SDL_GetGamepadAxis(gamepad, SDL_GAMEPAD_AXIS_RIGHT_TRIGGER) > 200) {
+        state |= (int)GamepadButton::RIGHT_TRIGGER;
+    }
+}
+
+void GamepadImplSDL::onGamepadUp(SDL_Event &event) {
+    GamepadImpl::onGamepadUp(event);
+}
+
+void GamepadImplSDL::onJoystickMove(SDL_Event &event) {
+    GamepadImpl::onJoystickMove(event);
+}
+
+void GamepadImplSDL::setGamepad(SDL_Gamepad *sdl_gamepad) {
+    GamepadImpl::setGamepad(sdl_gamepad);
+}
+
+void GamepadImplSDL::removeGamepad(SDL_Gamepad *sdl_gamepad) {
+    GamepadImpl::removeGamepad(sdl_gamepad);
+}
+
+void GamepadImplSDL::frame() {
+    GamepadImpl::frame();
+}
+
+void GamepadImplSDL::pollAxis(InputAxis *leftThumb, InputAxis *rightThumb) {
+    GamepadImpl::pollAxis(leftThumb, rightThumb);
+}
+
+int GamepadImplSDL::GPBasMask(SDL_Gamepad *pad, GamepadButton mask, SDL_GamepadButton button) {
+    if (SDL_GetGamepadButton(pad, button))
+        return (int)mask;
+    return 0;
+}
+
 class GamepadImplX : public Input::GamepadImpl {
 public:
     explicit GamepadImplX(Input *input)
@@ -433,9 +494,10 @@ const InputAxis* Input::AXIS(InputAxisType type) {
     else
         return Instance->CURSOR;
 }
-#ifndef __EMSCRIPTEN__
 Input::GamepadImpl::GamepadImpl(Input *input) : input(input) {
 }
+
+#ifndef __EMSCRIPTEN__
 
 void GamepadImplX::pollControllers(std::map<GamepadButton, InputGamepadButton*>& gamepadButtonActions) {
     XINPUT_STATE state;
@@ -471,7 +533,6 @@ void GamepadImplX::pollControllers(std::map<GamepadButton, InputGamepadButton*>&
 
     gamepadButtons = bState;
 }
-#endif
 
 void GamepadImplX::pollAxis(InputAxis *leftThumb, InputAxis *rightThumb) {
     XINPUT_STATE state;
@@ -493,3 +554,4 @@ void GamepadImplX::pollAxis(InputAxis *leftThumb, InputAxis *rightThumb) {
     // rightThumb->x = float(state.Gamepad.sThumbRX) / float(SHRT_MAX);
     // rightThumb->y = float(state.Gamepad.sThumbRY) / float(SHRT_MAX);
 }
+#endif
