@@ -10,6 +10,12 @@
 #include <steam_api.h>
 #endif
 
+#if __EMSCRIPTEN__
+#define MINIGIN_DATA_PATH std::string("")
+#else
+#define MINIGIN_DATA_PATH std::string("./Data/")
+#endif
+
 namespace dae
 {
 	class Minigin final

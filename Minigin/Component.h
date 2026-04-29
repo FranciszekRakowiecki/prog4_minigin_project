@@ -7,6 +7,7 @@
 #include <memory>
 #include <cassert>
 
+#include "SoundSystem.h"
 #include "glm/vec3.hpp"
 
 namespace dae {
@@ -161,6 +162,8 @@ namespace dae {
         const InputKey* back;
         const InputKey* left;
         const InputKey* right;
+
+        const InputKey* playSound;
 
         public:
             ExampleMovementKeyboard();

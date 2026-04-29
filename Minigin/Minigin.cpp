@@ -17,6 +17,9 @@
 #include "SceneManager.h"
 #include "Renderer.h"
 #include "ResourceManager.h"
+#include "ServiceLocator.h"
+#include "SoundLibrary.h"
+#include "SoundSystemSDL.h"
 
 SDL_Window* g_window{};
 
@@ -72,6 +75,7 @@ dae::Minigin::Minigin(const std::filesystem::path& dataPath)
 	m_Achievements = std::make_unique<CSteamAchievements>(g_Achievements, 0);
 #endif
 
+	ServiceLocator::GetInstance().setSoundSystem(std::move(std::make_unique<SoundSystemSDL>()));
 
 	PrintSDLVersion();
 
@@ -96,10 +100,15 @@ dae::Minigin::Minigin(const std::filesystem::path& dataPath)
 
 	Renderer::GetInstance().Init(g_window);
 	ResourceManager::GetInstance().Init(dataPath);
+
+	ServiceLocator::GetInstance().Init();
+
+	SoundLibrary::GetInstance().Load();
 }
 
 dae::Minigin::~Minigin()
 {
+	ServiceLocator::GetInstance().Shutdown();
 	delete m_Input;
 	Renderer::GetInstance().Destroy();
 	SDL_DestroyWindow(g_window);
@@ -137,6 +146,7 @@ void dae::Minigin::RunOneFrame()
 	GameTime::GetInstance().SetDeltaTime(delta);
 	// m_quit = !InputManager::GetInstance().ProcessInput();
 	SceneManager::GetInstance().Update();
+	ServiceLocator::GetInstance().update();
 	Renderer::GetInstance().Render();
 }
 

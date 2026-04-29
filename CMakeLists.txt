@@ -28,6 +28,14 @@ else()
           Minigin/Text.h
           Minigin/SteamAchievements.cpp
           Minigin/SteamAchievements.h
+          Minigin/ServiceLocator.cpp
+          Minigin/ServiceLocator.h
+          Minigin/SoundSystem.cpp
+          Minigin/SoundSystem.h
+          Minigin/SoundSystemSDL.cpp
+          Minigin/SoundSystemSDL.h
+          Minigin/SoundLibrary.cpp
+          Minigin/SoundLibrary.h
   )
 endif()
 

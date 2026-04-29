@@ -11,6 +11,9 @@
 
 #include "GameTime.h"
 #include "Input.h"
+#include "Minigin.h"
+#include "ServiceLocator.h"
+#include "SoundLibrary.h"
 #include "TextObject.h"
 
 void dae::Component::Destroy() {
@@ -74,9 +77,9 @@ dae::ExampleMovementKeyboard::ExampleMovementKeyboard() :
 forward{Input::KEY(SDL_SCANCODE_W)},
 back{Input::KEY(SDL_SCANCODE_S)},
 left{Input::KEY(SDL_SCANCODE_A)},
-right{Input::KEY(SDL_SCANCODE_D)}
+right{Input::KEY(SDL_SCANCODE_D)},
+playSound(Input::KEY(SDL_SCANCODE_R))
 {
-
 }
 
 void dae::ExampleMovementKeyboard::Update() {
@@ -88,6 +91,11 @@ void dae::ExampleMovementKeyboard::Update() {
     GameObject* parent = GetParent();
 
     parent->transform.SetWorldPosition(parent->transform.GetWorldPosition() + glm::vec3{ x, y, 0.0f } * deltaTime * 20.0f);
+
+    if (playSound->pressedThisFrame()) {
+        ServiceLocator::GetInstance().getSoundSystem().playSound(SoundLibrary::GetInstance().Beep, 1.0f);
+        ServiceLocator::GetInstance().getSoundSystem().playSound(SoundLibrary::GetInstance().Boop, 1.0f);
+    }
 }
 
 int dae::ExampleMovementKeyboard::GetFlags() {
