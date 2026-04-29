@@ -6,12 +6,15 @@
 #ifndef MINIGIN_INPUT_H
 #define MINIGIN_INPUT_H
 #include <map>
+#include <memory>
 #include <vector>
 #include <SDL3/SDL.h>
 
 // Custom macros to fit into the button system
+#ifndef __EMSCRIPTEN__
 #define XINPUT_GAMEPAD_LEFT_TRIGGER 0x10000
 #define XINPUT_GAMEPAD_RIGHT_TRIGGER 0x20000
+#endif
 
 namespace dae {
     class Minigin;
@@ -25,6 +28,25 @@ namespace dae {
         CURSOR_POSITION,
         GAMEPAD_LEFT,
         GAMEPAD_RIGHT,
+    };
+
+    enum class GamepadButton {
+        DPAD_UP = 0x0001,
+        DPAD_DOWN = 0x0002,
+        DPAD_LEFT = 0x0004,
+        DPAD_RIGHT = 0x0008,
+        START = 0x0010,
+        BACK = 0x0020,
+        LEFT_THUMB = 0x0040,
+        RIGHT_THUMB = 0x0080,
+        LEFT_SHOULDER = 0x0100,
+        RIGHT_SHOULDER = 0x0200,
+        A = 0x1000,
+        B = 0x2000,
+        X = 0x4000,
+        Y = 0x8000,
+        LEFT_TRIGGER = 0x10000,
+        RIGHT_TRIGGER = 0x20000
     };
 
     struct InputCommand {
@@ -89,12 +111,11 @@ namespace dae {
     };
 
     struct InputGamepadButton : InputCommand {
-
     private:
         bool pressed{false};
         bool framePress{};
         bool frameRelease{};
-        InputGamepadButton(int button);
+        InputGamepadButton(GamepadButton button);
 
     public:
 
@@ -102,7 +123,7 @@ namespace dae {
         bool pressedThisFrame() const;
         bool releasedThisFrame() const;
 
-        const int button;
+        const GamepadButton button;
 
         void frame() override;
 
@@ -133,6 +154,10 @@ namespace dae {
     };
 
     class Input {
+    public:
+        class GamepadImpl;
+    private:
+
         static Input* Instance;
 
         Minigin* engine;
@@ -145,35 +170,37 @@ namespace dae {
         InputAxis* RIGHT_THUMB_STICK{nullptr};
 
         SDL_Window* window{nullptr};
-        int gamepadButtons;
+
+        std::unique_ptr<GamepadImpl> gamepadImpl{nullptr};
 
         std::map<int, InputKey*> keyActions{};
         std::map<int, InputButton*> buttonActions{};
-        std::map<int, InputGamepadButton*> gamepadButtonActions{};
+        std::map<GamepadButton, InputGamepadButton*> gamepadButtonActions{};
 
         Input(Minigin* engine, SDL_Window* window);
         ~Input();
 
         void pollEvents();
-        void pollControllers();
         void pollKeys();
         void pollButtons();
         void pollAxis();
 
-        void handleInputChanges(int changes, int state, int mask);
+        void setPressed(InputGamepadButton* button, bool state);
+        void setXY(InputAxis* axis, float x, float y);
 
         friend class Minigin;
+        friend class GamepadImpl;
 
     public:
         InputKey const * getKey(int key);
         InputButton const * getButton(int button);
-        InputGamepadButton const * getGamepadButton(int button);
+        InputGamepadButton const * getGamepadButton(GamepadButton button);
 
         InputAxis const * getMouseDelta();
         InputAxis const * getCursor();
         InputAxis const * getScrollDelta();
 
-        int GetGamePad() const { return gamepadButtons; }
+        int GetGamePad() const;
 
         /**
          *
@@ -188,8 +215,10 @@ namespace dae {
          * @return /
          */
         static InputButton const * BUTTON(int button);
-        static InputGamepadButton const * GAMEPAD_BUTTON(int button);
+        static InputGamepadButton const * GAMEPAD_BUTTON(GamepadButton button);
         static InputAxis const * AXIS(InputAxisType type);
+
+        class GamepadImpl;
     };
 }
 

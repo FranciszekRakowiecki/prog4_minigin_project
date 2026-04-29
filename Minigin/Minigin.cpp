@@ -98,6 +98,10 @@ dae::Minigin::Minigin(const std::filesystem::path& dataPath)
 
 	m_Input = new Input(this, g_window);
 
+#if __EMSCRIPTEN__
+	SDL_InitSubSystem(SDL_INIT_JOYSTICK);
+#endif
+
 	Renderer::GetInstance().Init(g_window);
 	ResourceManager::GetInstance().Init(dataPath);
 
