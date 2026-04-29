@@ -103,10 +103,10 @@ int dae::ExampleMovementKeyboard::GetFlags() {
 }
 
 dae::ExampleMovementDPAD::ExampleMovementDPAD() :
-forward{Input::GAMEPAD_BUTTON(XINPUT_GAMEPAD_DPAD_UP)},
-back{Input::GAMEPAD_BUTTON(XINPUT_GAMEPAD_DPAD_DOWN)},
-left{Input::GAMEPAD_BUTTON(XINPUT_GAMEPAD_DPAD_LEFT)},
-right{Input::GAMEPAD_BUTTON(XINPUT_GAMEPAD_DPAD_RIGHT)}
+forward{Input::GAMEPAD_BUTTON(GamepadButton::DPAD_UP)},
+back{Input::GAMEPAD_BUTTON(GamepadButton::DPAD_DOWN)},
+left{Input::GAMEPAD_BUTTON(GamepadButton::DPAD_LEFT)},
+right{Input::GAMEPAD_BUTTON(GamepadButton::DPAD_RIGHT)}
 {
 
 }

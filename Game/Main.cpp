@@ -8,18 +8,18 @@
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_main.h>
 
-#include "Component.h"
-#include "DataDisplayComponents.h"
+#include "../Minigin/Component.h"
+#include "../Minigin/DataDisplayComponents.h"
 
 #if _DEBUG && __has_include(<vld.h>)
 #include <vld.h>
 #endif
 
-#include "Minigin.h"
-#include "SceneManager.h"
-#include "ResourceManager.h"
-#include "TextObject.h"
-#include "Scene.h"
+#include "../Minigin/Minigin.h"
+#include "../Minigin/SceneManager.h"
+#include "../Minigin/ResourceManager.h"
+#include "../Minigin/TextObject.h"
+#include "../Minigin/Scene.h"
 
 #include <filesystem>
 namespace fs = std::filesystem;

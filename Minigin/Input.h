@@ -16,6 +16,8 @@
 #define XINPUT_GAMEPAD_RIGHT_TRIGGER 0x20000
 #endif
 
+class GamepadImplSDL;
+
 namespace dae {
     class Minigin;
 }
@@ -190,6 +192,7 @@ namespace dae {
 
         friend class Minigin;
         friend class GamepadImpl;
+        friend class ::GamepadImplSDL;
 
     public:
         InputKey const * getKey(int key);
@@ -217,8 +220,6 @@ namespace dae {
         static InputButton const * BUTTON(int button);
         static InputGamepadButton const * GAMEPAD_BUTTON(GamepadButton button);
         static InputAxis const * AXIS(InputAxisType type);
-
-        class GamepadImpl;
     };
 }
 

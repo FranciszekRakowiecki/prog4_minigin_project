@@ -87,9 +87,9 @@ class LivesScoreRenderer final : public dae::Component {
     const dae::InputKey* m_PickupBigKeyboard{dae::Input::KEY(SDL_SCANCODE_X)};
     const dae::InputKey* m_TakeDamageKeyboard{dae::Input::KEY(SDL_SCANCODE_C)};
 
-    const dae::InputGamepadButton* m_PickupSmallGamepad{dae::Input::GAMEPAD_BUTTON(XINPUT_GAMEPAD_A)};
-    const dae::InputGamepadButton* m_PickupBigGamepad{dae::Input::GAMEPAD_BUTTON(XINPUT_GAMEPAD_B)};
-    const dae::InputGamepadButton* m_TakeDamageGamepad{dae::Input::GAMEPAD_BUTTON(XINPUT_GAMEPAD_X)};
+    const dae::InputGamepadButton* m_PickupSmallGamepad{dae::Input::GAMEPAD_BUTTON(dae::GamepadButton::A)};
+    const dae::InputGamepadButton* m_PickupBigGamepad{dae::Input::GAMEPAD_BUTTON(dae::GamepadButton::B)};
+    const dae::InputGamepadButton* m_TakeDamageGamepad{dae::Input::GAMEPAD_BUTTON(dae::GamepadButton::X)};
 
 public:
     LivesScoreRenderer();
