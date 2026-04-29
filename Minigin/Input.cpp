@@ -59,7 +59,7 @@ public:
     void pollAxis(InputAxis *leftThumb, InputAxis *rightThumb) override;
 
     int GPBasMask(SDL_Gamepad* pad, GamepadButton mask, SDL_GamepadButton button);
-    void handleInputChanges(std::map<GamepadButton, InputGamepadButton*>& gamepadButtons, int changes, int state, int mask);
+    void handleInputChanges(std::map<GamepadButton, InputGamepadButton*>& gamepadButtonActions, int changes, int state, int mask);
 };
 
 void GamepadImplSDL::onGamepadDown(SDL_Event &event) {
@@ -141,13 +141,13 @@ int GamepadImplSDL::GPBasMask(SDL_Gamepad *pad, GamepadButton mask, SDL_GamepadB
     return 0;
 }
 
-void GamepadImplSDL::handleInputChanges(std::map<GamepadButton, InputGamepadButton *> &gamepadButtons, int changes,
+void GamepadImplSDL::handleInputChanges(std::map<GamepadButton, InputGamepadButton *> &gamepadButtonActions, int changes,
     int state, int mask) {
     if (changes & mask) {
         GamepadButton key = (GamepadButton)mask;
-        if (gamepadButtons.contains(key)) {
+        if (gamepadButtonActions.contains(key)) {
             bool pressed = state & mask;
-            InputGamepadButton *button = gamepadButtons[key];
+            InputGamepadButton *button = gamepadButtonActions[key];
             setPressed(button, pressed);
             if (pressed)
                 button->buttonPress(mask);
@@ -165,7 +165,7 @@ public:
     void pollControllers(std::map<GamepadButton, InputGamepadButton*>& gamepadButtonActions) override;
     void pollAxis(InputAxis *leftThumb, InputAxis *rightThumb) override;
 
-    void handleInputChanges(std::map<GamepadButton, InputGamepadButton*>& gamepadButtons, int changes, int state, int mask);
+    void handleInputChanges(std::map<GamepadButton, InputGamepadButton*>& gamepadButtonActions, int changes, int state, int mask);
 };
 
 Input::Input(Minigin* engine, SDL_Window* window) :
@@ -313,12 +313,12 @@ void Input::setXY(InputAxis *axis, float x, float y) {
     axis->y = y;
 }
 
-void GamepadImplX::handleInputChanges(std::map<GamepadButton, InputGamepadButton*>& gamepadButtons, int changes, int state, int mask) {
+void GamepadImplX::handleInputChanges(std::map<GamepadButton, InputGamepadButton*>& gamepadButtonActions, int changes, int state, int mask) {
     if (changes & mask) {
         GamepadButton key = (GamepadButton)mask;
-        if (gamepadButtons.contains(key)) {
+        if (gamepadButtonActions.contains(key)) {
             bool pressed = state & mask;
-            InputGamepadButton *button = gamepadButtons[key];
+            InputGamepadButton *button = gamepadButtonActions[key];
             setPressed(button, pressed);
             if (pressed)
                 button->buttonPress(mask);
