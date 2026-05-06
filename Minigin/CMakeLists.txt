@@ -7,7 +7,9 @@ file(GLOB ENGINE_SOURCES CONFIGURE_DEPENDS
         "${CMAKE_CURRENT_SOURCE_DIR}/*.h"
 )
 
-add_library(engine STATIC ${ENGINE_SOURCES})
+add_library(engine STATIC ${ENGINE_SOURCES}
+        EngineHook.cpp
+        EngineHook.h)
 
 target_compile_features(engine PUBLIC cxx_std_20)
 

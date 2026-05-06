@@ -43,6 +43,8 @@ void LoopCallback(void* arg)
 }
 #endif
 
+#include "EngineHook.h"
+
 // Why bother with this? Because sometimes students have a different SDL version installed on their pc.
 // That is not a problem unless for some reason the dll's from this project are not copied next to the exe.
 // These entries in the debug output help to identify that issue.
@@ -122,6 +124,8 @@ dae::Minigin::~Minigin()
 
 void dae::Minigin::Run(const std::function<void(CSteamAchievements* achievements)>& load)
 {
+	if (m_EngineHook)
+		m_EngineHook->Start();
 	load(m_Achievements.get());
 #ifndef __EMSCRIPTEN__
 	m_LastFrame = GameTime::GetInstance().GetTime();
@@ -149,9 +153,17 @@ void dae::Minigin::RunOneFrame()
 	m_LastFrame = GameTime::GetInstance().GetTime();
 	GameTime::GetInstance().SetDeltaTime(delta);
 	// m_quit = !InputManager::GetInstance().ProcessInput();
+	if (m_EngineHook)
+		m_EngineHook->Update();
 	SceneManager::GetInstance().Update();
 	ServiceLocator::GetInstance().update();
+	if (m_EngineHook)
+		m_EngineHook->Render();
 	Renderer::GetInstance().Render();
+}
+
+void dae::Minigin::SetHook(EngineHook *hook) {
+	m_EngineHook = hook;
 }
 
 void dae::Minigin::Stop() {

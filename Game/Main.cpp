@@ -1,3 +1,4 @@
+#include "Game.h"
 #if USE_STEAMWORKS
 #include <steam_api.h>
 #endif
@@ -103,6 +104,7 @@ int main(int, char*[]) {
 		data_location = "../Data/";
 #endif
 	dae::Minigin engine(data_location);
+	engine.SetHook(&Game::GetInstance());
 	engine.Run(load);
 
 #if USE_STEAMWORKS

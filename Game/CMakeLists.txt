@@ -1,5 +1,11 @@
 if(WIN32 AND NOT EMSCRIPTEN)
-  set(GAME_EXECUTABLE_TYPE WIN32)
+  set(GAME_EXECUTABLE_TYPE WIN32
+          TextureSelector.cpp
+          TextureSelector.h
+          GameState.cpp
+          GameState.h
+          Game.cpp
+          Game.h)
 endif()
 
 add_executable(game ${GAME_EXECUTABLE_TYPE}
