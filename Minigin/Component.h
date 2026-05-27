@@ -146,47 +146,6 @@ namespace dae {
         void Update() override;
     };
 
-    class ExampleRotator : public Component {
-        public:
-        ExampleRotator();
-        float rotatorSpeed{1.0f};
-        int GetFlags() override;
-        void Update() override;
-        void Start() override;
-    private:
-        glm::vec3 offset;
-    };
-
-    class ExampleMovementKeyboard : public Component {
-        const InputKey* forward;
-        const InputKey* back;
-        const InputKey* left;
-        const InputKey* right;
-
-        const InputKey* playSound;
-
-        public:
-            ExampleMovementKeyboard();
-
-            void Update() override;
-            int GetFlags() override;
-
-    };
-
-    class ExampleMovementDPAD : public Component {
-        const InputGamepadButton* forward;
-        const InputGamepadButton* back;
-        const InputGamepadButton* left;
-        const InputGamepadButton* right;
-
-    public:
-        ExampleMovementDPAD();
-
-        void Update() override;
-        int GetFlags() override;
-
-    };
-
     // Tried to get interfaces to work but it just wont give
 }
 

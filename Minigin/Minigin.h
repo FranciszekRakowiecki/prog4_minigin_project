@@ -5,14 +5,6 @@
 
 #include "EngineHook.h"
 #include "Input.h"
-#include "SteamAchievements.h"
-
-#if USE_STEAMWORKS
-namespace dae {
-	class EngineHook;
-}
-#include <steam_api.h>
-#endif
 
 #if __EMSCRIPTEN__
 #define MINIGIN_DATA_PATH std::string("")
@@ -28,8 +20,6 @@ namespace dae
 		Input* m_Input;
 
 		bool m_quit{};
-
-		std::unique_ptr<CSteamAchievements> m_Achievements;
 
 		float m_LastFrame{};
 		const float m_TargetMS{ 1.0f / 60.0f };

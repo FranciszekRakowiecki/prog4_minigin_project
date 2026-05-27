@@ -22,6 +22,10 @@ add_executable(game ${GAME_EXECUTABLE_TYPE}
 
 target_compile_features(game PRIVATE cxx_std_20)
 target_link_libraries(game PRIVATE engine)
+target_include_directories(game PRIVATE
+        "${CMAKE_CURRENT_SOURCE_DIR}"
+        "${CMAKE_SOURCE_DIR}/Minigin"
+)
 
 set_property(DIRECTORY "${CMAKE_SOURCE_DIR}" PROPERTY VS_STARTUP_PROJECT game)
 

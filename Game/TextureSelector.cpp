@@ -4,6 +4,8 @@
 
 #include "TextureSelector.h"
 
+#include <algorithm>
+
 dae::Texture2D * PlayerTextureSelector::GetShootingTexture() {
     return m_PlayerTextures[int(m_PlayerMovementState) * 2 + (m_IsShooting ? 1 : 0)];
 }

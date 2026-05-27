@@ -10,11 +10,10 @@
 #include "GameState.h"
 #include "Singleton.h"
 
-
-class VersusPlayerState;
-class CoopPlayerState;
-class SinglePlayerState;
-class MainMenuState;
+#include "CoopPlayerState.h"
+#include "MainMenuState.h"
+#include "SinglePlayerState.h"
+#include "VersusPlayerState.h"
 
 class Game final : public dae::Singleton<Game>, public dae::EngineHook {
 private: // Avail game states

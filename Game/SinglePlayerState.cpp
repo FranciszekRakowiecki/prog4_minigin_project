@@ -3,3 +3,7 @@
 //
 
 #include "SinglePlayerState.h"
+
+void SinglePlayerState::Enter() {
+    GameState::Enter();
+}

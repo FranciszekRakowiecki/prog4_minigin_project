@@ -66,20 +66,6 @@ void PrintSDLVersion()
 dae::Minigin::Minigin(const std::filesystem::path& dataPath)
 {
 	INSTANCE = this;
-#if USE_STEAMWORKS
-	static Achievement_t g_Achievements[] =
-	{
-		_ACH_ID( ACH_WIN_ONE_GAME, "Winner" ),
-		_ACH_ID( ACH_WIN_100_GAMES, "Champion" ),
-		_ACH_ID( ACH_TRAVEL_FAR_ACCUM, "Interstellar" ),
-		_ACH_ID( ACH_TRAVEL_FAR_SINGLE, "Orbiter" ),
-	};
-	m_Achievements = std::make_unique<CSteamAchievements>(g_Achievements, 4);
-#else
-	static Achievement_t g_Achievements[] = { { 0, "a", "a", "a", false, 0 }};
-	m_Achievements = std::make_unique<CSteamAchievements>(g_Achievements, 0);
-#endif
-
 	PrintSDLVersion();
 
 	if (!SDL_InitSubSystem(SDL_INIT_VIDEO))
@@ -140,9 +126,6 @@ void dae::Minigin::Run()
 
 void dae::Minigin::RunOneFrame()
 {
-#if USE_STEAMWORKS
-	SteamAPI_RunCallbacks();
-#endif
 	float delta = GameTime::GetInstance().GetTime() - m_LastFrame;
 
 	if (delta < m_TargetMS)

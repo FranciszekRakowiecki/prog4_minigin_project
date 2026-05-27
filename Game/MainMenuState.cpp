@@ -12,7 +12,7 @@ namespace dae {
 
 void MainMenuState::Enter() {
     // Load main menu scene
-    m_Scene = &dae::SceneManager::GetInstance().CreateScene();
+    m_Scene = dae::SceneManager::GetInstance().CreateScene();
 
 
 }

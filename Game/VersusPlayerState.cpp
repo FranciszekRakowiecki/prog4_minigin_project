@@ -3,3 +3,7 @@
 //
 
 #include "VersusPlayerState.h"
+
+void VersusPlayerState::Enter() {
+    GameState::Enter();
+}

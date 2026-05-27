@@ -107,9 +107,8 @@ if (WIN32)
   find_package(VLD CONFIG)
 endif()
 
-# Add steam if available
-list(APPEND CMAKE_MODULE_PATH "../cmake/steam")
-find_package(Steamworks QUIET)
+## Add steam if available
+#list(APPEND CMAKE_MODULE_PATH "../cmake/steam")
 
 FetchContent_Declare(
         imgui_src
@@ -181,14 +180,6 @@ endif()
 if(EMSCRIPTEN)
   target_compile_options(engine PUBLIC -g)
   target_link_options(engine PUBLIC -sUSE_FREETYPE=1 -sUSE_HARFBUZZ=1 -g -sALLOW_MEMORY_GROWTH)
-endif()
-
-if(Steamworks_FOUND)
-  target_link_libraries(engine PUBLIC Steamworks::Steamworks)
-  target_compile_definitions(engine PUBLIC USE_STEAMWORKS)
-  set(MINIGIN_STEAMWORKS_FOUND TRUE PARENT_SCOPE)
-  set(MINIGIN_STEAMWORKS_RUNTIME_DLL "${Steamworks_RUNTIME_DLL}" PARENT_SCOPE)
-  set(MINIGIN_STEAMWORKS_LIBRARIES "${Steamworks_LIBRARIES}" PARENT_SCOPE)
 endif()
 
 if(WIN32)

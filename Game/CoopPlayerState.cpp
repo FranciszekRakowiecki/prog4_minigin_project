@@ -3,3 +3,7 @@
 //
 
 #include "CoopPlayerState.h"
+
+void CoopPlayerState::Enter() {
+    GameState::Enter();
+}
