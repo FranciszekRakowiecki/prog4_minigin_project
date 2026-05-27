@@ -4,18 +4,4 @@
 
 #include "GameState.h"
 
-void MainMenuState::Enter() {
-    // Load main menu scene
-}
-
-void SinglePlayerState::Enter() {
-    // Load singleplayer
-}
-
-void CoopPlayerState::Enter() {
-    // Load coop
-}
-
-void VersusPlayerState::Enter() {
-    // Load versus
-}
+#include "SceneManager.h"

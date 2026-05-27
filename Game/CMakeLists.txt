@@ -5,7 +5,15 @@ if(WIN32 AND NOT EMSCRIPTEN)
           GameState.cpp
           GameState.h
           Game.cpp
-          Game.h)
+          Game.h
+          MainMenuState.cpp
+          MainMenuState.h
+          SinglePlayerState.cpp
+          SinglePlayerState.h
+          CoopPlayerState.cpp
+          CoopPlayerState.h
+          VersusPlayerState.cpp
+          VersusPlayerState.h)
 endif()
 
 add_executable(game ${GAME_EXECUTABLE_TYPE}

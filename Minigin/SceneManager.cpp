@@ -22,9 +22,16 @@ dae::Scene * dae::SceneManager::GetActiveScene() {
 	return m_ActiveScene;
 }
 
-dae::Scene& dae::SceneManager::CreateScene()
+void dae::SceneManager::UnloadScene(Scene *scene) {
+	std::erase_if(m_scenes, [&](const auto& other) { return other.get() == scene; });
+	if (m_ActiveScene == scene) {
+		m_ActiveScene = nullptr;
+	}
+}
+
+dae::Scene* dae::SceneManager::CreateScene()
 {
 	m_scenes.emplace_back(new Scene());
 	m_ActiveScene = m_scenes.back().get();
-	return *m_scenes.back();
+	return m_scenes.back().get();
 }

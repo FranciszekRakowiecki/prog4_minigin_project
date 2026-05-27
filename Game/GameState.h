@@ -26,32 +26,4 @@ public:
 
 // Temporary class locations will be moved to separate files
 
-class MainMenuState : public GameState {
-    public:
-    void Enter() override;
-    void Update() override {}
-    void Render() override {}
-};
-
-class SinglePlayerState : public GameState {
-    public:
-    void Enter() override;
-    void Update() override {}
-    void Render() override {}
-};
-
-class CoopPlayerState : public GameState {
-public:
-    void Enter() override;
-    void Update() override {}
-    void Render() override {}
-};
-
-class VersusPlayerState : public GameState {
-public:
-    void Enter() override;
-    void Update() override {}
-    void Render() override {}
-};
-
 #endif //PROG4MINIGINPROJECT_GAMESTATE_H

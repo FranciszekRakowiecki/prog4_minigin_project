@@ -24,6 +24,7 @@ namespace dae
 {
 	class Minigin final
 	{
+		static Minigin* INSTANCE;
 		Input* m_Input;
 
 		bool m_quit{};
@@ -37,7 +38,7 @@ namespace dae
 	public:
 		explicit Minigin(const std::filesystem::path& dataPath);
 		~Minigin();
-		void Run(const std::function<void(CSteamAchievements* achievements)>& load);
+		void Run();
 		void RunOneFrame();
 
 		void SetHook(EngineHook* hook);

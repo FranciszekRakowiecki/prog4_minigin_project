@@ -11,11 +11,11 @@ namespace dae
 	class SceneManager final : public Singleton<SceneManager>
 	{
 	public:
-		Scene& CreateScene();
-
+		Scene* CreateScene();
 		void Update();
 		void Render();
 		Scene* GetActiveScene();
+		void UnloadScene(Scene* scene);
 	private:
 		friend class Singleton<SceneManager>;
 		SceneManager() = default;

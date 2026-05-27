@@ -21,6 +21,8 @@
 #include "SoundLibrary.h"
 #include "SoundSystemSDL.h"
 
+dae::Minigin* dae::Minigin::INSTANCE{nullptr};
+
 SDL_Window* g_window{};
 
 void LogSDLVersion(const std::string& message, int major, int minor, int patch)
@@ -63,6 +65,7 @@ void PrintSDLVersion()
 
 dae::Minigin::Minigin(const std::filesystem::path& dataPath)
 {
+	INSTANCE = this;
 #if USE_STEAMWORKS
 	static Achievement_t g_Achievements[] =
 	{
@@ -76,8 +79,6 @@ dae::Minigin::Minigin(const std::filesystem::path& dataPath)
 	static Achievement_t g_Achievements[] = { { 0, "a", "a", "a", false, 0 }};
 	m_Achievements = std::make_unique<CSteamAchievements>(g_Achievements, 0);
 #endif
-
-	ServiceLocator::GetInstance().setSoundSystem(std::move(std::make_unique<SoundSystemSDL>()));
 
 	PrintSDLVersion();
 
@@ -122,11 +123,10 @@ dae::Minigin::~Minigin()
 	SDL_Quit();
 }
 
-void dae::Minigin::Run(const std::function<void(CSteamAchievements* achievements)>& load)
+void dae::Minigin::Run()
 {
 	if (m_EngineHook)
 		m_EngineHook->Start();
-	load(m_Achievements.get());
 #ifndef __EMSCRIPTEN__
 	m_LastFrame = GameTime::GetInstance().GetTime();
 

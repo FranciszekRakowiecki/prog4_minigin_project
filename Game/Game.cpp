@@ -4,6 +4,13 @@
 
 #include "Game.h"
 
+#include "Minigin.h"
+#include "ResourceManager.h"
+#include "SceneManager.h"
+#include "ServiceLocator.h"
+#include "SoundSystemSDL.h"
+#include "TextObject.h"
+
 Game::Game() :
 m_NullGameState(std::make_unique<NullGameState>()),
 m_MainMenuState(std::make_unique<MainMenuState>()),
@@ -27,7 +34,17 @@ void Game::ChangeState(GameState *state) {
 }
 
 void Game::Start() {
+    ServiceLocator::GetInstance().setSoundSystem(std::make_unique<SoundSystemSDL>());
 
+    // auto font = dae::ResourceManager::GetInstance().LoadFont("Lingua.otf", 36);
+    // auto fps = std::make_unique<dae::TextObject>("FPS: ", font);
+    // fps->SetColor({ 255, 255, 255, 255 });
+    // fps->SetPosition(0, 0);
+    // fps->AddComponent<dae::ExampleUpdateComponent>();
+    //
+    // scene.Add(std::move(fps));
+
+    LoadMainMenu();
 }
 
 void Game::Update() {

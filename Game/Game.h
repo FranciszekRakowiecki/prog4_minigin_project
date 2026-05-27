@@ -11,6 +11,11 @@
 #include "Singleton.h"
 
 
+class VersusPlayerState;
+class CoopPlayerState;
+class SinglePlayerState;
+class MainMenuState;
+
 class Game final : public dae::Singleton<Game>, public dae::EngineHook {
 private: // Avail game states
     std::unique_ptr<NullGameState> m_NullGameState;
