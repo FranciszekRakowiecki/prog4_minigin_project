@@ -11,6 +11,7 @@
 #include "Singleton.h"
 
 #include "CoopPlayerState.h"
+#include "Font.h"
 #include "MainMenuState.h"
 #include "SinglePlayerState.h"
 #include "VersusPlayerState.h"
@@ -37,7 +38,10 @@ public:
     void LoadCoopPlayer();
     void LoadVersusPlayer();
 
+    std::shared_ptr<dae::Font> GetGameFont() const;
+
 private:
+    std::shared_ptr<dae::Font> m_GameFont;
     GameState* m_GameState;
 };
 

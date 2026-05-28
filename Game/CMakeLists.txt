@@ -13,7 +13,11 @@ if(WIN32 AND NOT EMSCRIPTEN)
           CoopPlayerState.cpp
           CoopPlayerState.h
           VersusPlayerState.cpp
-          VersusPlayerState.h)
+          VersusPlayerState.h
+          Button.cpp
+          Button.h
+          AABB.cpp
+          AABB.h)
 endif()
 
 add_executable(game ${GAME_EXECUTABLE_TYPE}

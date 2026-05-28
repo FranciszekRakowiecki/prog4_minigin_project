@@ -36,6 +36,8 @@ void Game::ChangeState(GameState *state) {
 void Game::Start() {
     ServiceLocator::GetInstance().setSoundSystem(std::make_unique<SoundSystemSDL>());
 
+    m_GameFont = dae::ResourceManager::GetInstance().LoadFont("Lingua.otf", 30);
+
     // auto font = dae::ResourceManager::GetInstance().LoadFont("Lingua.otf", 36);
     // auto fps = std::make_unique<dae::TextObject>("FPS: ", font);
     // fps->SetColor({ 255, 255, 255, 255 });
@@ -69,4 +71,8 @@ void Game::LoadCoopPlayer() {
 
 void Game::LoadVersusPlayer() {
     ChangeState(m_VersusPlayerState.get());
+}
+
+std::shared_ptr<dae::Font> Game::GetGameFont() const {
+    return m_GameFont;
 }

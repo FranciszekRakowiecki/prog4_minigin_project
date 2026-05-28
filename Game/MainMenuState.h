@@ -5,6 +5,7 @@
 #ifndef PROG4MINIGINPROJECT_MAINMENUSTATE_H
 #define PROG4MINIGINPROJECT_MAINMENUSTATE_H
 #include "GameState.h"
+#include <cstdint>
 
 
 namespace dae {
@@ -13,6 +14,7 @@ namespace dae {
 
 class MainMenuState : public GameState {
     dae::Scene* m_Scene;
+    uint32_t buttonSelection;
 public:
     void Enter() override;
     void Exit() override;
