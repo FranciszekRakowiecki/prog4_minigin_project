@@ -1,5 +1,7 @@
 #include "Transform.h"
 
+#include <cassert>
+
 #include "GameObject.h"
 
 const glm::vec3 & dae::Transform::GetPosition() const {
@@ -7,52 +9,53 @@ const glm::vec3 & dae::Transform::GetPosition() const {
 }
 
 const glm::vec3 & dae::Transform::GetWorldPosition() const {
+	if (m_isWorldPositionDirty)
+		UpdateWorldPosition();
+
 	return m_worldPosition;
 }
 
 void dae::Transform::SetWorldPosition(float x, float y, float z) {
-	SetWorldPosition({ x, y, z});
+	SetWorldPosition({ x, y, z });
 }
 
 void dae::Transform::SetRotation(float x) {
 	m_rotation = x;
 }
 
-void dae::Transform::SetLocalPosition(const float x, const float y, const float z)
-{
-	m_position.x = x;
-	m_position.y = y;
-	m_position.z = z;
-	SetDirty();
+void dae::Transform::SetLocalPosition(const float x, const float y, const float z) {
+	SetLocalPosition({ x, y, z });
 }
 
-void dae::Transform::SetLocalPosition(const glm::vec3& position)
-{ 
+void dae::Transform::SetLocalPosition(const glm::vec3& position) {
+	if (m_position == position)
+		return;
+
 	m_position = position;
-	SetDirty();
+	MarkWorldPositionDirty();
 }
 
-// Wouldn't it be better if the world position for all objects was recalculated at once instead of having to wait for an update, it could cause inaccurate results if there are a lot of world position assignments.
 void dae::Transform::SetWorldPosition(const glm::vec3 &position) {
-	m_worldPosition = position;
-
-	m_position = m_worldPosition - GetParentWorldPosition();
-
-	SetDirty();
+	const glm::vec3 localPosition = position - GetParentWorldPosition();
+	SetLocalPosition(localPosition);
 }
 
 float dae::Transform::GetRotation() const {
 	return m_rotation;
 }
 
-void dae::Transform::SetDirty() {
-	m_worldPosition = GetParentWorldPosition() + m_position;
+dae::Transform::Transform(GameObject *parent) : m_parent(parent) {
+	assert(parent != nullptr);
+}
+
+void dae::Transform::MarkWorldPositionDirty() {
+	m_isWorldPositionDirty = true;
 	m_parent->TransformIsDirty();
 }
 
-dae::Transform::Transform(GameObject *parent) : m_parent(parent) {
-	assert(parent != nullptr);
-	SetDirty();
+void dae::Transform::UpdateWorldPosition() const {
+	m_worldPosition = GetParentWorldPosition() + m_position;
+	m_isWorldPositionDirty = false;
 }
 
 glm::vec3 dae::Transform::GetParentWorldPosition() const {

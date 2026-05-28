@@ -92,7 +92,7 @@ void dae::GameObject::addChild(std::unique_ptr<GameObject> child) {
 
 void dae::GameObject::TransformIsDirty() {
 	for (int index = 0; index < (int)m_Children.size(); ++index) {
-		m_Children[index]->transform.SetDirty();
+		m_Children[index]->transform.MarkWorldPositionDirty();
 	}
 }
 
@@ -137,6 +137,7 @@ void dae::GameObject::SetParent(GameObject* parent) {
 		m_Parent->removeChild(this);
 		SceneManager::GetInstance().GetActiveScene()->Add(std::unique_ptr<GameObject>(this));
 		m_Parent = nullptr;
+		transform.MarkWorldPositionDirty();
 		return;
 	}
 
@@ -147,6 +148,8 @@ void dae::GameObject::SetParent(GameObject* parent) {
 		SceneManager::GetInstance().GetActiveScene()->pop(this);
 	}
 	m_Parent = parent;
+	transform.MarkWorldPositionDirty();
+
 	if (m_Parent)
 		m_Parent->addChild(std::unique_ptr<GameObject>(this));
 	else
