@@ -245,14 +245,14 @@ namespace dae {
         friend class ::GamepadImplSDL;
 
     public:
-        InputKey const * getKey(int key);
-        InputButton const * getButton(int button);
-        InputGamepadButton const * getGamepadButton(GamepadButton button);
-        InputGamepadButton const * getGamepadButton(int gamepadIndex, GamepadButton button);
+        InputKey* getKey(int key);
+        InputButton* getButton(int button);
+        InputGamepadButton* getGamepadButton(GamepadButton button);
+        InputGamepadButton* getGamepadButton(int gamepadIndex, GamepadButton button);
 
-        InputAxis const * getMouseDelta();
-        InputAxis const * getCursor();
-        InputAxis const * getScrollDelta();
+        InputAxis* getMouseDelta();
+        InputAxis* getCursor();
+        InputAxis* getScrollDelta();
 
         int GetGamePad(int gamepadIndex = 0) const;
 
@@ -261,18 +261,18 @@ namespace dae {
          * @param key SDL_SCANCODE
          * @return
          */
-        static const InputKey* KEY(int key);
+        static InputKey* KEY(int key);
 
         /**
          *
          * @param button SDL_BUTTON
          * @return /
          */
-        static InputButton const * BUTTON(int button);
-        static InputGamepadButton const * GAMEPAD_BUTTON(GamepadButton button);
-        static InputGamepadButton const * GAMEPAD_BUTTON(int gamepadIndex, GamepadButton button);
-        static InputAxis const * AXIS(InputAxisType type);
-        static InputAxis const * AXIS(int gamepadIndex, InputAxisType type);
+        static InputButton* BUTTON(int button);
+        static InputGamepadButton* GAMEPAD_BUTTON(GamepadButton button);
+        static InputGamepadButton* GAMEPAD_BUTTON(int gamepadIndex, GamepadButton button);
+        static InputAxis* AXIS(InputAxisType type);
+        static InputAxis* AXIS(int gamepadIndex, InputAxisType type);
     };
 }
 

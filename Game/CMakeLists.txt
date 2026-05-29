@@ -17,7 +17,9 @@ if(WIN32 AND NOT EMSCRIPTEN)
           Button.cpp
           Button.h
           AABB.cpp
-          AABB.h)
+          AABB.h
+          PlayerInputHandler.cpp
+          PlayerInputHandler.h)
 endif()
 
 add_executable(game ${GAME_EXECUTABLE_TYPE}

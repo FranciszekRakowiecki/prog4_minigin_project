@@ -641,7 +641,7 @@ void InputGamepadButton::buttonRelease(int _button) {
     pressed = false;
 }
 
-const InputKey* Input::getKey(int key) {
+InputKey* Input::getKey(int key) {
     if (keyActions.count(key) == 0) {
         keyActions.emplace(key, new InputKey(key));
     }
@@ -649,7 +649,7 @@ const InputKey* Input::getKey(int key) {
     return keyActions[key];
 }
 
-const InputButton* Input::getButton(int button) {
+InputButton* Input::getButton(int button) {
     if (buttonActions.count(button) == 0) {
         buttonActions.emplace(button, new InputButton(button));
     }
@@ -657,11 +657,11 @@ const InputButton* Input::getButton(int button) {
     return buttonActions[button];
 }
 
-const InputGamepadButton* Input::getGamepadButton(GamepadButton button) {
+InputGamepadButton* Input::getGamepadButton(GamepadButton button) {
     return getGamepadButton(0, button);
 }
 
-const InputGamepadButton* Input::getGamepadButton(int gamepadIndex, GamepadButton button) {
+InputGamepadButton* Input::getGamepadButton(int gamepadIndex, GamepadButton button) {
     if (gamepadIndex < 0 || gamepadIndex >= MaxGamepads)
         gamepadIndex = 0;
 
@@ -672,15 +672,15 @@ const InputGamepadButton* Input::getGamepadButton(int gamepadIndex, GamepadButto
     return playerActions[button];
 }
 
-const InputAxis* Input::getMouseDelta() {
+InputAxis* Input::getMouseDelta() {
     return MOUSE_DELTA;
 }
 
-const InputAxis* Input::getCursor() {
+InputAxis* Input::getCursor() {
     return CURSOR;
 }
 
-const InputAxis* Input::getScrollDelta() {
+InputAxis* Input::getScrollDelta() {
     return SCROLL_DELTA;
 }
 
@@ -691,27 +691,27 @@ int Input::GetGamePad(int gamepadIndex) const {
     return gamepadImpl->GetGamepadButtons(gamepadIndex);
 }
 
-const InputKey* Input::KEY(int key) {
+InputKey* Input::KEY(int key) {
     return Instance->getKey(key);
 }
 
-const InputButton* Input::BUTTON(int button) {
+InputButton* Input::BUTTON(int button) {
     return Instance->getButton(button);
 }
 
-const InputGamepadButton* Input::GAMEPAD_BUTTON(GamepadButton button) {
+InputGamepadButton* Input::GAMEPAD_BUTTON(GamepadButton button) {
     return Instance->getGamepadButton(button);
 }
 
-const InputGamepadButton* Input::GAMEPAD_BUTTON(int gamepadIndex, GamepadButton button) {
+InputGamepadButton* Input::GAMEPAD_BUTTON(int gamepadIndex, GamepadButton button) {
     return Instance->getGamepadButton(gamepadIndex, button);
 }
 
-const InputAxis* Input::AXIS(InputAxisType type) {
+InputAxis* Input::AXIS(InputAxisType type) {
     return AXIS(0, type);
 }
 
-const InputAxis* Input::AXIS(int gamepadIndex, InputAxisType type) {
+InputAxis* Input::AXIS(int gamepadIndex, InputAxisType type) {
     if (gamepadIndex < 0 || gamepadIndex >= MaxGamepads)
         gamepadIndex = 0;
 
