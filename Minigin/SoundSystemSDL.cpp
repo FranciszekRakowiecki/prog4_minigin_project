@@ -6,12 +6,26 @@
 
 #include <algorithm>
 #include <iostream>
+#include <mutex>
 #include <queue>
+
+#ifndef __EMSCRIPTEN__
+#include <atomic>
+#include <chrono>
+#include <thread>
+#endif
 
 #include "SDL3/SDL.h"
 #include "SDL3/SDL_audio.h"
 
 class SoundSystemSDL::Impl {
+#ifndef __EMSCRIPTEN__
+    struct SoundLoadRequest {
+        SoundId id;
+        std::string path;
+    };
+#endif
+
     struct SoundPlayRequest {
         SoundId id;
         float volume;
@@ -31,16 +45,35 @@ public:
 
     Sound* loadSound(const std::string& path);
 
-    void popAndPlayNextSound();
-    bool hasNext();
+#ifndef __EMSCRIPTEN__
+    void startLoader();
+    void stopLoader();
+    void loaderLoop();
+    void queueSoundLoad(SoundId id, const std::string& path);
+#endif
+    Sound* getSound(SoundId id);
+    bool isSoundLoadFinished(SoundId id);
+    void processPlayRequests();
 
     std::vector<Sound*> sounds;
+    std::vector<bool> soundLoadFinished;
     std::vector<SoundInstance> soundInstances;
     std::vector<float> mixBuffer;
     SDL_AudioStream* m_Stream{};
     SDL_AudioSpec audioSpec{};
 
     std::queue<SoundPlayRequest> soundPlayRequests;
+#ifndef __EMSCRIPTEN__
+    std::queue<SoundLoadRequest> soundLoadRequests;
+#endif
+
+    std::mutex soundMutex;
+    std::mutex playQueueMutex;
+#ifndef __EMSCRIPTEN__
+    std::mutex loadQueueMutex;
+    std::thread loaderThread;
+    std::atomic_bool loaderRunning{false};
+#endif
 
     constexpr static int maxQueuedBytes = 48000 * 2 * sizeof(float) / 4;
 };
@@ -108,26 +141,126 @@ Sound * SoundSystemSDL::Impl::loadSound(const std::string &path) {
     return sound;
 }
 
-void SoundSystemSDL::Impl::popAndPlayNextSound() {
-    SoundPlayRequest soundPlayRequest = soundPlayRequests.front();
-    soundPlayRequests.pop();
-    Sound* sound = sounds[soundPlayRequest.id];
-
-    if (!sound) {
-        return;
-    }
-
-    SoundInstance soundInstance{};
-    soundInstance.sound = sound;
-    soundInstance.position = 0;
-    soundInstance.volume = soundPlayRequest.volume;
-    soundInstance.isDone = false;
-
-    soundInstances.emplace_back(soundInstance);
+#ifndef __EMSCRIPTEN__
+void SoundSystemSDL::Impl::startLoader() {
+    loaderRunning = true;
+    loaderThread = std::thread(&Impl::loaderLoop, this);
 }
 
-bool SoundSystemSDL::Impl::hasNext() {
-    return !soundPlayRequests.empty();
+void SoundSystemSDL::Impl::stopLoader() {
+    loaderRunning = false;
+
+    if (loaderThread.joinable()) {
+        loaderThread.join();
+    }
+}
+
+void SoundSystemSDL::Impl::loaderLoop() {
+    while (loaderRunning) {
+        SoundLoadRequest request{};
+        bool hasRequest{false};
+
+        {
+            std::lock_guard lock(loadQueueMutex);
+            if (!soundLoadRequests.empty()) {
+                request = soundLoadRequests.front();
+                soundLoadRequests.pop();
+                hasRequest = true;
+            }
+        }
+
+        if (!hasRequest) {
+            std::this_thread::sleep_for(std::chrono::milliseconds(1));
+            continue;
+        }
+
+        Sound* loadedSound = loadSound(request.path);
+
+        std::lock_guard lock(soundMutex);
+
+        if (loadedSound == nullptr) {
+            std::cerr << "Failed to load sound: " << request.path << std::endl;
+            const auto index = static_cast<size_t>(request.id);
+            if (request.id >= 0 && index < soundLoadFinished.size()) {
+                soundLoadFinished[index] = true;
+            }
+            continue;
+        }
+
+        const uint32_t index = uint32_t(request.id);
+        if (request.id >= 0 && index < sounds.size()) {
+            delete sounds[index];
+            sounds[index] = loadedSound;
+            soundLoadFinished[index] = true;
+        } else {
+            delete loadedSound;
+        }
+    }
+}
+
+void SoundSystemSDL::Impl::queueSoundLoad(SoundId id, const std::string& path) {
+    std::lock_guard lock(loadQueueMutex);
+    soundLoadRequests.push({id, path});
+}
+#endif
+
+Sound* SoundSystemSDL::Impl::getSound(SoundId id) {
+    if (id < 0) {
+        return nullptr;
+    }
+
+    std::lock_guard lock(soundMutex);
+    const auto index = static_cast<size_t>(id);
+    if (index >= sounds.size()) {
+        return nullptr;
+    }
+
+    return sounds[index];
+}
+
+bool SoundSystemSDL::Impl::isSoundLoadFinished(SoundId id) {
+    if (id < 0) {
+        return true;
+    }
+
+    std::lock_guard lock(soundMutex);
+    const auto index = static_cast<size_t>(id);
+    if (index >= soundLoadFinished.size()) {
+        return true;
+    }
+
+    return soundLoadFinished[index];
+}
+
+void SoundSystemSDL::Impl::processPlayRequests() {
+    std::queue<SoundPlayRequest> pendingRequests;
+
+    {
+        std::lock_guard lock(playQueueMutex);
+        std::swap(pendingRequests, soundPlayRequests);
+    }
+
+    while (!pendingRequests.empty()) {
+        SoundPlayRequest soundPlayRequest = pendingRequests.front();
+        pendingRequests.pop();
+
+        Sound* sound = getSound(soundPlayRequest.id);
+        if (!sound) {
+            if (!isSoundLoadFinished(soundPlayRequest.id)) {
+                std::lock_guard lock(playQueueMutex);
+                soundPlayRequests.push(soundPlayRequest);
+            }
+            continue;
+        }
+
+        SoundInstance soundInstance{};
+        soundInstance.sound = sound;
+        soundInstance.position = 0;
+        soundInstance.volume = soundPlayRequest.volume;
+        soundInstance.isDone = false;
+
+        soundInstances.emplace_back(soundInstance);
+    }
 }
 
 SoundSystemSDL::Impl::Impl() {
@@ -138,6 +271,7 @@ void SoundSystemSDL::Impl::playSound(SoundId id, float volume) {
     if (id < 0)
         return;
 
+    std::lock_guard lock(playQueueMutex);
     soundPlayRequests.push({ id, volume });
 }
 
@@ -159,10 +293,17 @@ bool SoundSystemSDL::Impl::Init() {
     }
 
     SDL_ResumeAudioStreamDevice(m_Stream);
+#ifndef __EMSCRIPTEN__
+    startLoader();
+#endif
     return true;
 }
 
 void SoundSystemSDL::Impl::Shutdown() {
+#ifndef __EMSCRIPTEN__
+    stopLoader();
+#endif
+
     if (m_Stream) {
         SDL_DestroyAudioStream(m_Stream);
         m_Stream = nullptr;
@@ -173,20 +314,32 @@ void SoundSystemSDL::Impl::Shutdown() {
     }
 
     sounds.clear();
+    soundLoadFinished.clear();
 
     SDL_QuitSubSystem(SDL_INIT_AUDIO);
 }
 
-// Returns -1 if no sound found.
+// Returns an id immediately. On desktop builds, the actual WAV load is queued on
+// the background loader thread.
 SoundId SoundSystemSDL::Impl::registerSound(const std::string &path) {
-    Sound* sound = loadSound(path);
-    if (sound == nullptr) {
-        std::cerr << "Failed to load sound: " << path << std::endl;
-        return SoundId(-1);
+    SoundId id{};
+    {
+        std::lock_guard lock(soundMutex);
+        sounds.emplace_back(nullptr);
+        soundLoadFinished.emplace_back(false);
+        id = SoundId(sounds.size() - 1);
     }
 
-    sounds.emplace_back(sound);
-    return SoundId(sounds.size() - 1);
+#ifndef __EMSCRIPTEN__
+    queueSoundLoad(id, path);
+#else
+    Sound* sound = loadSound(path);
+    std::lock_guard lock(soundMutex);
+    const auto index = static_cast<size_t>(id);
+    sounds[index] = sound;
+    soundLoadFinished[index] = true;
+#endif
+    return id;
 }
 
 void SoundSystemSDL::Impl::update() {
@@ -200,9 +353,7 @@ void SoundSystemSDL::Impl::update() {
         return;
     }
 
-    // here is the request queue setup as requested ig
-    while (hasNext())
-        popAndPlayNextSound();
+    processPlayRequests();
 
     const int framesToMix = 512;
     const int channels = audioSpec.channels;

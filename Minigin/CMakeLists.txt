@@ -14,6 +14,9 @@ add_library(engine STATIC ${ENGINE_SOURCES}
 target_compile_features(engine PUBLIC cxx_std_20)
 
 include(FetchContent)
+if(NOT EMSCRIPTEN)
+  find_package(Threads REQUIRED)
+endif()
 
 # add glm
 find_package(glm CONFIG QUIET)
@@ -169,6 +172,10 @@ target_link_libraries(engine PUBLIC
         implot
         ${VLD_LIBRARIES}
 )
+
+if(NOT EMSCRIPTEN)
+  target_link_libraries(engine PUBLIC Threads::Threads)
+endif()
 
 if(MSVC)
   # compile at warning level 4 + treat warnings as errors
