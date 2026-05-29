@@ -2,6 +2,7 @@
 #include <vector>
 #include <SDL3/SDL.h>
 #include "Singleton.h"
+#include "glm/vec4.hpp"
 
 namespace dae {
 	class Text;
@@ -32,24 +33,16 @@ namespace dae
 		SDL_Renderer* m_renderer{};
 		SDL_Window* m_window{};
 		SDL_Color m_clearColor{};
-
-		std::vector<int> m_Exercise1_Timings;
-		int m_Exercise1_Samples{10};
-
-		std::vector<int> m_Exercise2_Timings;
-		int m_Exercise2_Samples{10};
 	public:
 		void Init(SDL_Window* window);
 		void Render() const;
 		void Destroy();
 
-		static void DrawExercise1();
-		static void DrawExercise2();
-
 		void RenderTexture(const Texture2D& texture, float x, float y) const;
 		void RenderTexture(const Texture2D& texture, float x, float y, float width, float height) const;
 		void RenderText(const Text& text, float x, float y) const;
 		void RenderText(const Text& text, float x, float y, float width, float height) const;
+		void RenderRect(float x, float y, float width, float height, const glm::vec4& color) const;
 
 		SDL_Renderer* GetSDLRenderer() const;
 

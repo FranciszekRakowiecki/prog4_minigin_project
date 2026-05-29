@@ -5,6 +5,7 @@
 #include "Game.h"
 
 #include "Minigin.h"
+#include "Renderer.h"
 #include "ResourceManager.h"
 #include "SceneManager.h"
 #include "ServiceLocator.h"
@@ -55,6 +56,8 @@ void Game::Update() {
 
 void Game::Render() {
     m_GameState->Render();
+
+    dae::Renderer::GetInstance().RenderRect(0, 0, 100, 100, glm::vec4(1.0f));
 }
 
 void Game::LoadMainMenu() {
