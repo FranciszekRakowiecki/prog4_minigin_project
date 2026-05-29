@@ -6,8 +6,6 @@
 
 #include "Game.h"
 #include "GameObject.h"
-#include <gl/GL.h>
-#include <gl/GLU.h>
 
 int Button::GetFlags() {
     return COMPONENT_HAS_RENDER | COMPONENT_HAS_UPDATE;

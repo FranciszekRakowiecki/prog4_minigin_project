@@ -8,6 +8,8 @@
 #include <map>
 #include <memory>
 #include <vector>
+#include <array>
+#include <functional>
 #include <SDL3/SDL.h>
 
 // Custom macros to fit into the button system
@@ -24,12 +26,17 @@ namespace dae {
 
 namespace dae {
 
-    enum InputAxisType : uint8_t {
+    enum class CommandType : uint8_t {
+        KEY_PRESS, KEY_RELEASE, BUTTON_PRESS, BUTTON_RELEASE, GAMEPAD_BUTTON_PRESS, GAMEPAD_BUTTON_RELEASE, AXIS_MOVE, NONE
+    };
+
+    enum class InputAxisType : uint8_t {
         SCROLL,
-        MOUSE,
+        MOUSE_DELTA,
         CURSOR_POSITION,
         GAMEPAD_LEFT,
         GAMEPAD_RIGHT,
+        NONE
     };
 
     enum class GamepadButton {
@@ -48,11 +55,54 @@ namespace dae {
         X = 0x4000,
         Y = 0x8000,
         LEFT_TRIGGER = 0x10000,
-        RIGHT_TRIGGER = 0x20000
+        RIGHT_TRIGGER = 0x20000,
+        NONE = 0xFFFFFF
     };
 
+    struct CommandContext {
+        CommandType type{CommandType::NONE};
+        InputAxisType axis{InputAxisType::NONE};
+        uint8_t button{0};
+        GamepadButton gamepadButton{GamepadButton::NONE};
+        SDL_Scancode scanCode{SDL_SCANCODE_0};
+        float axisX{0.0f}, axisY{0.0f};
+        uint32_t gamepadIndex{0};
+    };
+
+    using CommandCallbackId = uint32_t;
+    using CommandCallbackFunc = std::function<void(const CommandContext&)>;
+
+    struct CommandCallback {
+        CommandCallbackId id{0};
+        CommandCallbackFunc callback;
+    };
+
+    using CommandCallbacks = std::vector<CommandCallback>;
+
+    // This approach is mid
+    // You have to keep track of the input yourself and there is no easy ish way to automatically unbind the callback when an object is deleted.
+    // It makes the client prone to forgetting to unbind the call.
+    // Also it makes it rather difficult to find references to specific scene objects if it is instead meant to use the virtual void execute format instead of the std::function
+    // The awesome functionality of std::function is that i can pass in a reference to an object and within the function it will still have access to private members
+    // making this approach slightly less how do i put it... shit.
+    // And even then organizing your code with IsPressed, WasPressedThisFrame can happen just structuring checks in their own independent contexts correctly such that you dont have a huge if else going for the entire update function...
     struct InputCommand {
-        virtual ~InputCommand() = default;
+        CommandCallbacks onPerformed{};
+        void execute(const CommandContext&);
+        CommandCallbackId addListener(CommandCallbackFunc cb);
+
+        /**
+         * Cannot be executed during an onPerformed call
+         * @param idx Stored id of the callback
+         */
+        void removeListener(CommandCallbackId idx);
+
+    private:
+        uint32_t callbackIndex{0};
+    };
+
+    struct InputAction : public InputCommand {
+        virtual ~InputAction() = default;
 
         virtual void frame() = 0;
         virtual void keyPress(int key) = 0;
@@ -62,7 +112,7 @@ namespace dae {
         virtual void buttonRelease(int button) = 0;
     };
 
-    struct InputKey : InputCommand {
+    struct InputKey : InputAction {
         const int key;
         bool isPressed() const;
         bool pressedThisFrame() const;
@@ -87,7 +137,7 @@ namespace dae {
         friend class Input;
     };
 
-    struct InputButton : InputCommand {
+    struct InputButton : InputAction {
         const int button;
         bool isPressed() const;
         bool pressedThisFrame() const;
@@ -112,7 +162,7 @@ namespace dae {
         friend class Input;
     };
 
-    struct InputGamepadButton : InputCommand {
+    struct InputGamepadButton : InputAction {
     private:
         bool pressed{false};
         bool framePress{};
@@ -140,7 +190,7 @@ namespace dae {
         friend class Input;
     };
 
-    struct InputAxis {
+    struct InputAxis : public InputCommand {
         const InputAxisType axisType;
 
         float getX() const;
@@ -158,8 +208,8 @@ namespace dae {
     class Input {
     public:
         class GamepadImpl;
+        static constexpr int MaxGamepads{4};
     private:
-
         static Input* Instance;
 
         Minigin* engine;
@@ -168,8 +218,8 @@ namespace dae {
         InputAxis* CURSOR{nullptr};
         InputAxis* SCROLL_DELTA{nullptr};
 
-        InputAxis* LEFT_THUMB_STICK{nullptr};
-        InputAxis* RIGHT_THUMB_STICK{nullptr};
+        std::array<InputAxis*, MaxGamepads> LEFT_THUMB_STICKS{};
+        std::array<InputAxis*, MaxGamepads> RIGHT_THUMB_STICKS{};
 
         SDL_Window* window{nullptr};
 
@@ -177,7 +227,7 @@ namespace dae {
 
         std::map<int, InputKey*> keyActions{};
         std::map<int, InputButton*> buttonActions{};
-        std::map<GamepadButton, InputGamepadButton*> gamepadButtonActions{};
+        std::array<std::map<GamepadButton, InputGamepadButton*>, MaxGamepads> gamepadButtonActions{};
 
         Input(Minigin* engine, SDL_Window* window);
         ~Input();
@@ -198,12 +248,13 @@ namespace dae {
         InputKey const * getKey(int key);
         InputButton const * getButton(int button);
         InputGamepadButton const * getGamepadButton(GamepadButton button);
+        InputGamepadButton const * getGamepadButton(int gamepadIndex, GamepadButton button);
 
         InputAxis const * getMouseDelta();
         InputAxis const * getCursor();
         InputAxis const * getScrollDelta();
 
-        int GetGamePad() const;
+        int GetGamePad(int gamepadIndex = 0) const;
 
         /**
          *
@@ -219,7 +270,9 @@ namespace dae {
          */
         static InputButton const * BUTTON(int button);
         static InputGamepadButton const * GAMEPAD_BUTTON(GamepadButton button);
+        static InputGamepadButton const * GAMEPAD_BUTTON(int gamepadIndex, GamepadButton button);
         static InputAxis const * AXIS(InputAxisType type);
+        static InputAxis const * AXIS(int gamepadIndex, InputAxisType type);
     };
 }
 
