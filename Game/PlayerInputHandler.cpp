@@ -3,9 +3,9 @@
 //
 
 #include "PlayerInputHandler.h"
-#include "PlayerInputHandler.h"
 
 #include <algorithm>
+#include <iostream>
 
 #include "Input.h"
 
@@ -51,12 +51,25 @@ GamepadMoveInput::GamepadMoveInput(uint32_t gamepad, uint32_t playerIndex) : Mov
     moveDownGamepad = dae::Input::GAMEPAD_BUTTON(gamepad, dae::GamepadButton::DPAD_DOWN);
     moveLeftGamepad = dae::Input::GAMEPAD_BUTTON(gamepad, dae::GamepadButton::DPAD_LEFT);
     moveRightGamepad = dae::Input::GAMEPAD_BUTTON(gamepad, dae::GamepadButton::DPAD_RIGHT);
+
+    if (gamepad == 0)
+        std::cout << "Created player 1 for gamepad" << std::endl;
+    else {
+        std::cout << "Created player 2 for gamepad" << std::endl;
+    }
 }
 
 const glm::vec2 & GamepadMoveInput::getMove() {
+    return move;
 }
 
 void GamepadMoveInput::update() {
+    move = {};
+    gamepadButtonInput();
+    gamepadAxisInput();
+
+    move.x = std::clamp(move.x, -1.0f, 1.0f);
+    move.y = std::clamp(move.y, -1.0f, 1.0f);
 }
 
 struct KeyShootInput : public PlayerInputHandler::ShootInput {
@@ -101,12 +114,14 @@ KeyMoveInput::KeyMoveInput(uint32_t gamepad, uint32_t playerIndex) : MoveInput(g
         moveDownKey = dae::Input::KEY(SDL_SCANCODE_S);
         moveLeftKey = dae::Input::KEY(SDL_SCANCODE_A);
         moveRightKey = dae::Input::KEY(SDL_SCANCODE_D);
+        std::cout << "Created player 1 for keyboard" << std::endl;
     }
     else {
         moveUpKey = dae::Input::KEY(SDL_SCANCODE_UP);
         moveDownKey = dae::Input::KEY(SDL_SCANCODE_DOWN);
         moveLeftKey = dae::Input::KEY(SDL_SCANCODE_LEFT);
         moveRightKey = dae::Input::KEY(SDL_SCANCODE_RIGHT);
+        std::cout << "Created player 2 for keyboard" << std::endl;
     }
 }
 
@@ -123,6 +138,7 @@ void KeyMoveInput::keyInput() {
 }
 
 void KeyMoveInput::update() {
+    move = {};
     keyInput();
 
     move.x = std::clamp(move.x, -1.0f, 1.0f);
@@ -139,7 +155,7 @@ void GamepadMoveInput::gamepadButtonInput() {
 
 void GamepadMoveInput::gamepadAxisInput() {
     move.x += gamepadMove->getX();
-    move.y += gamepadMove->getX();
+    move.y += gamepadMove->getY();
 }
 
 KeyShootInput::KeyShootInput(uint32_t gamepad, uint32_t playerIndex) : ShootInput(gamepad, playerIndex) {
@@ -164,9 +180,11 @@ m_GamepadIndex(gamepadIndex),
 m_MoveInput(nullptr) {
     if (isGamepad) {
         m_MoveInput = std::make_unique<GamepadMoveInput>(gamepadIndex, playerIndex);
+        m_ShootInput = std::make_unique<GamepadShootInput>(gamepadIndex, playerIndex);
     }
     else {
         m_MoveInput = std::make_unique<KeyMoveInput>(gamepadIndex, playerIndex);
+        m_ShootInput = std::make_unique<KeyShootInput>(gamepadIndex, playerIndex);
     }
 }
 

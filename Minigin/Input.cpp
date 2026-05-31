@@ -61,7 +61,7 @@ public:
     void pollAxis(std::array<InputAxis*, Input::MaxGamepads>& leftThumb, std::array<InputAxis*, Input::MaxGamepads>& rightThumb) override;
 
     int GPBasMask(SDL_Gamepad* pad, GamepadButton mask, SDL_GamepadButton button);
-    void handleInputChanges(std::map<GamepadButton, InputGamepadButton*>& gamepadButtonActions, int changes, int state, int mask);
+    void handleInputChanges(std::map<GamepadButton, InputGamepadButton*>& gamepadButtonActions, int changes, int state, int mask, uint32_t gamepadIndex);
     int getPlayer(SDL_JoystickID joystickId) const;
 
 private:
@@ -109,22 +109,22 @@ void GamepadImplSDL::onGamepadDown(SDL_Event &event) {
 
     int changes = state ^ gamepadButtons[player];
 
-    handleInputChanges(input->gamepadButtonActions[player], changes, state, (int)GamepadButton::DPAD_UP);
-    handleInputChanges(input->gamepadButtonActions[player], changes, state, (int)GamepadButton::DPAD_DOWN);
-    handleInputChanges(input->gamepadButtonActions[player], changes, state, (int)GamepadButton::DPAD_LEFT);
-    handleInputChanges(input->gamepadButtonActions[player], changes, state, (int)GamepadButton::DPAD_RIGHT);
-    handleInputChanges(input->gamepadButtonActions[player], changes, state, (int)GamepadButton::A);
-    handleInputChanges(input->gamepadButtonActions[player], changes, state, (int)GamepadButton::B);
-    handleInputChanges(input->gamepadButtonActions[player], changes, state, (int)GamepadButton::X);
-    handleInputChanges(input->gamepadButtonActions[player], changes, state, (int)GamepadButton::Y);
-    handleInputChanges(input->gamepadButtonActions[player], changes, state, (int)GamepadButton::START);
-    handleInputChanges(input->gamepadButtonActions[player], changes, state, (int)GamepadButton::BACK);
-    handleInputChanges(input->gamepadButtonActions[player], changes, state, (int)GamepadButton::LEFT_SHOULDER);
-    handleInputChanges(input->gamepadButtonActions[player], changes, state, (int)GamepadButton::RIGHT_SHOULDER);
-    handleInputChanges(input->gamepadButtonActions[player], changes, state, (int)GamepadButton::LEFT_THUMB);
-    handleInputChanges(input->gamepadButtonActions[player], changes, state, (int)GamepadButton::RIGHT_THUMB);
-    handleInputChanges(input->gamepadButtonActions[player], changes, state, (int)GamepadButton::LEFT_TRIGGER);
-    handleInputChanges(input->gamepadButtonActions[player], changes, state, (int)GamepadButton::RIGHT_TRIGGER);
+    handleInputChanges(input->gamepadButtonActions[player], changes, state, (int)GamepadButton::DPAD_UP, static_cast<uint32_t>(player));
+    handleInputChanges(input->gamepadButtonActions[player], changes, state, (int)GamepadButton::DPAD_DOWN, static_cast<uint32_t>(player));
+    handleInputChanges(input->gamepadButtonActions[player], changes, state, (int)GamepadButton::DPAD_LEFT, static_cast<uint32_t>(player));
+    handleInputChanges(input->gamepadButtonActions[player], changes, state, (int)GamepadButton::DPAD_RIGHT, static_cast<uint32_t>(player));
+    handleInputChanges(input->gamepadButtonActions[player], changes, state, (int)GamepadButton::A, static_cast<uint32_t>(player));
+    handleInputChanges(input->gamepadButtonActions[player], changes, state, (int)GamepadButton::B, static_cast<uint32_t>(player));
+    handleInputChanges(input->gamepadButtonActions[player], changes, state, (int)GamepadButton::X, static_cast<uint32_t>(player));
+    handleInputChanges(input->gamepadButtonActions[player], changes, state, (int)GamepadButton::Y, static_cast<uint32_t>(player));
+    handleInputChanges(input->gamepadButtonActions[player], changes, state, (int)GamepadButton::START, static_cast<uint32_t>(player));
+    handleInputChanges(input->gamepadButtonActions[player], changes, state, (int)GamepadButton::BACK, static_cast<uint32_t>(player));
+    handleInputChanges(input->gamepadButtonActions[player], changes, state, (int)GamepadButton::LEFT_SHOULDER, static_cast<uint32_t>(player));
+    handleInputChanges(input->gamepadButtonActions[player], changes, state, (int)GamepadButton::RIGHT_SHOULDER, static_cast<uint32_t>(player));
+    handleInputChanges(input->gamepadButtonActions[player], changes, state, (int)GamepadButton::LEFT_THUMB, static_cast<uint32_t>(player));
+    handleInputChanges(input->gamepadButtonActions[player], changes, state, (int)GamepadButton::RIGHT_THUMB, static_cast<uint32_t>(player));
+    handleInputChanges(input->gamepadButtonActions[player], changes, state, (int)GamepadButton::LEFT_TRIGGER, static_cast<uint32_t>(player));
+    handleInputChanges(input->gamepadButtonActions[player], changes, state, (int)GamepadButton::RIGHT_TRIGGER, static_cast<uint32_t>(player));
 
     gamepadButtons[player] = state;
 }
@@ -222,11 +222,12 @@ int GamepadImplSDL::getPlayer(SDL_JoystickID joystickId) const {
 }
 
 void GamepadImplSDL::handleInputChanges(std::map<GamepadButton, InputGamepadButton *> &gamepadButtonActions, int changes,
-    int state, int mask) {
+    int state, int mask, uint32_t gamepadIndex) {
     if (changes & mask) {
         GamepadButton key = (GamepadButton)mask;
         bool pressed = state & mask;
         CommandContext ctx{};
+        ctx.gamepadIndex = gamepadIndex;
         ctx.gamepadButton = key;
         ctx.type = pressed ? CommandType::GAMEPAD_BUTTON_PRESS : CommandType::GAMEPAD_BUTTON_RELEASE;
         this->input->getAnyPerformed().execute(ctx);
@@ -253,7 +254,7 @@ public:
     void pollControllers(std::array<std::map<GamepadButton, InputGamepadButton*>, Input::MaxGamepads>& gamepadButtonActions) override;
     void pollAxis(std::array<InputAxis*, Input::MaxGamepads>& leftThumb, std::array<InputAxis*, Input::MaxGamepads>& rightThumb) override;
 
-    void handleInputChanges(std::map<GamepadButton, InputGamepadButton*>& gamepadButtonActions, int changes, int state, int mask);
+    void handleInputChanges(std::map<GamepadButton, InputGamepadButton*>& gamepadButtonActions, int changes, int state, int mask, uint32_t gamepadIndex);
 };
 
 Input::Input(Minigin* engine, SDL_Window* window) :
@@ -476,11 +477,17 @@ void Input::setXY(InputAxis *axis, float x, float y) {
     axis->y = y;
 }
 
-void GamepadImplX::handleInputChanges(std::map<GamepadButton, InputGamepadButton*>& gamepadButtonActions, int changes, int state, int mask) {
+void GamepadImplX::handleInputChanges(std::map<GamepadButton, InputGamepadButton*>& gamepadButtonActions, int changes, int state, int mask, uint32_t gamepadIndex) {
     if (changes & mask) {
         GamepadButton key = (GamepadButton)mask;
+        bool pressed = state & mask;
+        CommandContext ctx{};
+        ctx.gamepadIndex = gamepadIndex;
+        ctx.gamepadButton = key;
+        ctx.type = pressed ? CommandType::GAMEPAD_BUTTON_PRESS : CommandType::GAMEPAD_BUTTON_RELEASE;
+        this->input->getAnyPerformed().execute(ctx);
+
         if (gamepadButtonActions.contains(key)) {
-            bool pressed = state & mask;
             InputGamepadButton *button = gamepadButtonActions[key];
             setPressed(button, pressed);
             if (pressed)
@@ -488,15 +495,11 @@ void GamepadImplX::handleInputChanges(std::map<GamepadButton, InputGamepadButton
             else
                 button->buttonRelease(mask);
 
-            CommandContext ctx{};
-            ctx.gamepadButton = key;
-            ctx.type = pressed ? CommandType::GAMEPAD_BUTTON_PRESS : CommandType::GAMEPAD_BUTTON_RELEASE;
-
             button->execute(ctx);
-
-            ctx.gamepadButton = GamepadButton::NONE;
-            ctx.type = CommandType::NONE;
         }
+
+        ctx.gamepadButton = GamepadButton::NONE;
+        ctx.type = CommandType::NONE;
     }
 }
 
@@ -764,22 +767,22 @@ void GamepadImplX::pollControllers(std::array<std::map<GamepadButton, InputGamep
 
         int changes = bState ^ gamepadButtons[player];
 
-        handleInputChanges(gamepadButtonActions[player], changes, bState, XINPUT_GAMEPAD_DPAD_UP);
-        handleInputChanges(gamepadButtonActions[player], changes, bState, XINPUT_GAMEPAD_DPAD_DOWN);
-        handleInputChanges(gamepadButtonActions[player], changes, bState, XINPUT_GAMEPAD_DPAD_LEFT);
-        handleInputChanges(gamepadButtonActions[player], changes, bState, XINPUT_GAMEPAD_DPAD_RIGHT);
-        handleInputChanges(gamepadButtonActions[player], changes, bState, XINPUT_GAMEPAD_START);
-        handleInputChanges(gamepadButtonActions[player], changes, bState, XINPUT_GAMEPAD_BACK);
-        handleInputChanges(gamepadButtonActions[player], changes, bState, XINPUT_GAMEPAD_LEFT_THUMB);
-        handleInputChanges(gamepadButtonActions[player], changes, bState, XINPUT_GAMEPAD_RIGHT_THUMB);
-        handleInputChanges(gamepadButtonActions[player], changes, bState, XINPUT_GAMEPAD_LEFT_SHOULDER);
-        handleInputChanges(gamepadButtonActions[player], changes, bState, XINPUT_GAMEPAD_RIGHT_SHOULDER);
-        handleInputChanges(gamepadButtonActions[player], changes, bState, XINPUT_GAMEPAD_A);
-        handleInputChanges(gamepadButtonActions[player], changes, bState, XINPUT_GAMEPAD_B);
-        handleInputChanges(gamepadButtonActions[player], changes, bState, XINPUT_GAMEPAD_X);
-        handleInputChanges(gamepadButtonActions[player], changes, bState, XINPUT_GAMEPAD_Y);
-        handleInputChanges(gamepadButtonActions[player], changes, bState, XINPUT_GAMEPAD_LEFT_TRIGGER);
-        handleInputChanges(gamepadButtonActions[player], changes, bState, XINPUT_GAMEPAD_RIGHT_TRIGGER);
+        handleInputChanges(gamepadButtonActions[player], changes, bState, XINPUT_GAMEPAD_DPAD_UP, player);
+        handleInputChanges(gamepadButtonActions[player], changes, bState, XINPUT_GAMEPAD_DPAD_DOWN, player);
+        handleInputChanges(gamepadButtonActions[player], changes, bState, XINPUT_GAMEPAD_DPAD_LEFT, player);
+        handleInputChanges(gamepadButtonActions[player], changes, bState, XINPUT_GAMEPAD_DPAD_RIGHT, player);
+        handleInputChanges(gamepadButtonActions[player], changes, bState, XINPUT_GAMEPAD_START, player);
+        handleInputChanges(gamepadButtonActions[player], changes, bState, XINPUT_GAMEPAD_BACK, player);
+        handleInputChanges(gamepadButtonActions[player], changes, bState, XINPUT_GAMEPAD_LEFT_THUMB, player);
+        handleInputChanges(gamepadButtonActions[player], changes, bState, XINPUT_GAMEPAD_RIGHT_THUMB, player);
+        handleInputChanges(gamepadButtonActions[player], changes, bState, XINPUT_GAMEPAD_LEFT_SHOULDER, player);
+        handleInputChanges(gamepadButtonActions[player], changes, bState, XINPUT_GAMEPAD_RIGHT_SHOULDER, player);
+        handleInputChanges(gamepadButtonActions[player], changes, bState, XINPUT_GAMEPAD_A, player);
+        handleInputChanges(gamepadButtonActions[player], changes, bState, XINPUT_GAMEPAD_B, player);
+        handleInputChanges(gamepadButtonActions[player], changes, bState, XINPUT_GAMEPAD_X, player);
+        handleInputChanges(gamepadButtonActions[player], changes, bState, XINPUT_GAMEPAD_Y, player);
+        handleInputChanges(gamepadButtonActions[player], changes, bState, XINPUT_GAMEPAD_LEFT_TRIGGER, player);
+        handleInputChanges(gamepadButtonActions[player], changes, bState, XINPUT_GAMEPAD_RIGHT_TRIGGER, player);
 
         gamepadButtons[player] = bState;
     }

@@ -13,6 +13,7 @@
 
 class PlayerInputManager : public dae::Singleton<PlayerInputManager> {
 public:
+    void initialize();
     void update();
 
     const std::vector<PlayerInputHandler>& getPlayers() const;

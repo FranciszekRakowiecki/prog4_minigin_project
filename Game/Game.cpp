@@ -5,6 +5,7 @@
 #include "Game.h"
 
 #include "Minigin.h"
+#include "PlayerInputManager.h"
 #include "Renderer.h"
 #include "ResourceManager.h"
 #include "SceneManager.h"
@@ -38,6 +39,8 @@ void Game::Start() {
     ServiceLocator::GetInstance().setSoundSystem(std::make_unique<SoundSystemSDL>());
 
     m_GameFont = dae::ResourceManager::GetInstance().LoadFont("Lingua.otf", 30);
+
+    PlayerInputManager::GetInstance().initialize();
 
     // auto font = dae::ResourceManager::GetInstance().LoadFont("Lingua.otf", 36);
     // auto fps = std::make_unique<dae::TextObject>("FPS: ", font);
