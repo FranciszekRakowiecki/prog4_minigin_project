@@ -179,12 +179,31 @@ void GamepadImplSDL::pollAxis(std::array<InputAxis*, Input::MaxGamepads>& leftTh
         if (!gamepad)
             continue;
 
-        setXY(leftThumb[player],
-            float(SDL_GetGamepadAxis(gamepad, SDL_GAMEPAD_AXIS_LEFTX)) / float(SHRT_MAX),
-            float(SDL_GetGamepadAxis(gamepad, SDL_GAMEPAD_AXIS_LEFTY)) / float(SHRT_MAX));
-        setXY(rightThumb[player],
-            float(SDL_GetGamepadAxis(gamepad, SDL_GAMEPAD_AXIS_RIGHTX)) / float(SHRT_MAX),
-            float(SDL_GetGamepadAxis(gamepad, SDL_GAMEPAD_AXIS_RIGHTY)) / float(SHRT_MAX));
+        CommandContext ctx{};
+        {
+            float x = float(SDL_GetGamepadAxis(gamepad, SDL_GAMEPAD_AXIS_LEFTX)) / float(SHRT_MAX);
+            float y = float(SDL_GetGamepadAxis(gamepad, SDL_GAMEPAD_AXIS_LEFTY)) / float(SHRT_MAX);
+            if (x != leftThumb[player]->getX() || y != leftThumb[player]->getY()) {
+                setXY(leftThumb[player], x,y);
+                ctx.axis = InputAxisType::GAMEPAD_LEFT;
+                ctx.axisX = leftThumb[player]->getX();
+                ctx.axisY = leftThumb[player]->getY();
+
+                leftThumb[player]->execute(ctx);
+            }
+        }
+        {
+            float x = float(SDL_GetGamepadAxis(gamepad, SDL_GAMEPAD_AXIS_RIGHTX)) / float(SHRT_MAX);
+            float y = float(SDL_GetGamepadAxis(gamepad, SDL_GAMEPAD_AXIS_RIGHTY)) / float(SHRT_MAX);
+            if (x != rightThumb[player]->getX() || y != rightThumb[player]->getY()) {
+                setXY(rightThumb[player], x,y);
+                ctx.axis = InputAxisType::GAMEPAD_RIGHT;
+                ctx.axisX = rightThumb[player]->getX();
+                ctx.axisY = rightThumb[player]->getY();
+
+                rightThumb[player]->execute(ctx);
+            }
+        }
     }
 }
 
@@ -206,8 +225,12 @@ void GamepadImplSDL::handleInputChanges(std::map<GamepadButton, InputGamepadButt
     int state, int mask) {
     if (changes & mask) {
         GamepadButton key = (GamepadButton)mask;
+        bool pressed = state & mask;
+        CommandContext ctx{};
+        ctx.gamepadButton = key;
+        ctx.type = pressed ? CommandType::GAMEPAD_BUTTON_PRESS : CommandType::GAMEPAD_BUTTON_RELEASE;
+        this->input->getAnyPerformed().execute(ctx);
         if (gamepadButtonActions.contains(key)) {
-            bool pressed = state & mask;
             InputGamepadButton *button = gamepadButtonActions[key];
             setPressed(button, pressed);
             if (pressed)
@@ -215,15 +238,10 @@ void GamepadImplSDL::handleInputChanges(std::map<GamepadButton, InputGamepadButt
             else
                 button->buttonRelease(mask);
 
-            CommandContext ctx{};
-            ctx.gamepadButton = key;
-            ctx.type = pressed ? CommandType::GAMEPAD_BUTTON_PRESS : CommandType::GAMEPAD_BUTTON_RELEASE;
-
             button->execute(ctx);
-
-            ctx.gamepadButton = GamepadButton::NONE;
-            ctx.type = CommandType::NONE;
         }
+        ctx.gamepadButton = GamepadButton::NONE;
+        ctx.type = CommandType::NONE;
     }
 }
 
@@ -306,60 +324,56 @@ void Input::pollEvents() {
                 engine->Stop();
                 return;
             case SDL_EVENT_KEY_DOWN:
+                ctx.scanCode = event.key.scancode;
+                ctx.type = CommandType::KEY_PRESS;
+                m_OnAnyPerformed.execute(ctx);
                 if (keyActions.contains(event.key.scancode)) {
                     InputKey* key = keyActions[event.key.scancode];
                     key->keyPress(event.key.scancode);
 
-                    ctx.scanCode = event.key.scancode;
-                    ctx.type = CommandType::KEY_PRESS;
-
                     key->execute(ctx);
-
-                    ctx.scanCode = SDL_SCANCODE_0;
-                    ctx.type = CommandType::NONE;
                 }
+                ctx.scanCode = SDL_SCANCODE_0;
+                ctx.type = CommandType::NONE;
                 break;
             case SDL_EVENT_KEY_UP:
+                ctx.scanCode = event.key.scancode;
+                ctx.type = CommandType::KEY_RELEASE;
+                m_OnAnyPerformed.execute(ctx);
                 if (keyActions.contains(event.key.scancode)) {
                     InputKey* key = keyActions[event.key.scancode];
                     key->keyRelease(event.key.scancode);
 
-                    ctx.scanCode = event.key.scancode;
-                    ctx.type = CommandType::KEY_RELEASE;
-
                     key->execute(ctx);
-
-                    ctx.scanCode = SDL_SCANCODE_0;
-                    ctx.type = CommandType::NONE;
                 }
+                ctx.scanCode = SDL_SCANCODE_0;
+                ctx.type = CommandType::NONE;
                 break;
             case SDL_EVENT_MOUSE_BUTTON_DOWN:
+                ctx.button = event.button.button;
+                ctx.type = CommandType::BUTTON_PRESS;
+                m_OnAnyPerformed.execute(ctx);
                 if (buttonActions.contains(event.button.button)) {
                     InputButton* button = buttonActions[event.button.button];
                     button->buttonPress(event.button.button);
 
-                    ctx.button = event.button.button;
-                    ctx.type = CommandType::BUTTON_PRESS;
-
                     button->execute(ctx);
-
-                    ctx.button = 0;
-                    ctx.type = CommandType::NONE;
                 }
+                ctx.button = 0;
+                ctx.type = CommandType::NONE;
                 break;
             case SDL_EVENT_MOUSE_BUTTON_UP:
+                ctx.button = event.button.button;
+                ctx.type = CommandType::BUTTON_RELEASE;
+                m_OnAnyPerformed.execute(ctx);
                 if (buttonActions.contains(event.button.button)) {
                     InputButton* button = buttonActions[event.button.button];
                     button->buttonRelease(event.button.button);
 
-                    ctx.button = event.button.button;
-                    ctx.type = CommandType::BUTTON_RELEASE;
-
                     button->execute(ctx);
-
-                    ctx.button = 0;
-                    ctx.type = CommandType::NONE;
                 }
+                ctx.button = 0;
+                ctx.type = CommandType::NONE;
                 break;
             case SDL_EVENT_GAMEPAD_ADDED: {
 #ifdef __EMSCRIPTEN__

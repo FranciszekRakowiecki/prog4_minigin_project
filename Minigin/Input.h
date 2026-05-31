@@ -229,6 +229,8 @@ namespace dae {
         std::map<int, InputButton*> buttonActions{};
         std::array<std::map<GamepadButton, InputGamepadButton*>, MaxGamepads> gamepadButtonActions{};
 
+        InputCommand m_OnAnyPerformed{};
+
         Input(Minigin* engine, SDL_Window* window);
         ~Input();
 
@@ -253,6 +255,8 @@ namespace dae {
         InputAxis* getMouseDelta();
         InputAxis* getCursor();
         InputAxis* getScrollDelta();
+
+        static InputCommand& getAnyPerformed() { return Instance->m_OnAnyPerformed; }
 
         int GetGamePad(int gamepadIndex = 0) const;
 

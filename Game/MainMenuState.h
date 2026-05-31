@@ -19,7 +19,7 @@ public:
     void Enter() override;
     void Exit() override;
     void Update() override {}
-    void Render() override {}
+    void Render() override;
 };
 
 #endif //PROG4MINIGINPROJECT_MAINMENUSTATE_H

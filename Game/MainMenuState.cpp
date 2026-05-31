@@ -20,3 +20,7 @@ void MainMenuState::Enter() {
 void MainMenuState::Exit() {
 
 }
+
+void MainMenuState::Render() {
+
+}
