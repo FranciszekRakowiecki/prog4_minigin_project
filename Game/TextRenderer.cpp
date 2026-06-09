@@ -14,7 +14,7 @@ int TextRenderer::GetFlags() {
 void TextRenderer::Start() {
     m_Text.SetFont(Game::GetInstance().GetGameFont());
     m_Text.SetText("");
-    m_Text.SetColor(SDL_Color{ 255, 255, 255, 255 });
+    m_Text.SetColor({ 255, 255, 255, 255 });
     m_Text.UpdateTexture();
 }
 

@@ -37,8 +37,21 @@ void MainMenuState::CreateInfoTexts() {
 
     {
         std::unique_ptr<dae::GameObject> gameobject = std::make_unique<dae::GameObject>();
+        dae::Reference<TextRenderer> titleRenderer = gameobject->AddComponent<TextRenderer>();
+        titleRenderer->SetText("Tron : Battle Tanks");
+        titleRenderer->UpdateTexture();
+        glm::vec2 textSize{titleRenderer->GetSize()};
+
+        gameobject->transform.SetWorldPosition(center.x - textSize.x / 2.0f, 110.0f);
+
+        m_Scene->Add(std::move(gameobject));
+    }
+
+    {
+        std::unique_ptr<dae::GameObject> gameobject = std::make_unique<dae::GameObject>();
         m_ErrorText = gameobject->AddComponent<TextRenderer>();
         m_ErrorText->SetColor({ 255, 0, 0, 255 });
+        m_ErrorText->UpdateTexture();
 
         glm::vec2 textSize{m_ErrorText->GetSize()};
 
@@ -169,7 +182,15 @@ glm::vec2 MainMenuState::GetWindowSize() const {
 
 void MainMenuState::SetErrorText(const std::string &text) {
     if (m_ErrorText) {
+        glm::vec2 windowSize{GetWindowSize()};
+        glm::vec2 center{windowSize / 2.0f};
+
         m_ErrorText->SetText(text);
+        m_ErrorText->UpdateTexture();
+
+        glm::vec2 textSize{m_ErrorText->GetSize()};
+
+        m_ErrorText->GetParent()->transform.SetWorldPosition({ center.x - textSize.x / 2.0f, windowSize.y - textSize.y, 0.0f });
     }
 }
 
