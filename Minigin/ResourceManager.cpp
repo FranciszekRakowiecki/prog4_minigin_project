@@ -1,6 +1,9 @@
 ﻿#include <stdexcept>
 #include <SDL3_ttf/SDL_ttf.h>
 #include "ResourceManager.h"
+
+#include <fstream>
+
 #include "Renderer.h"
 #include "Texture2D.h"
 #include "Font.h"
@@ -53,4 +56,21 @@ void dae::ResourceManager::UnloadUnusedResources()
 		else
 			++it;
 	}
+}
+
+std::vector<uint8_t> dae::ResourceManager::LoadBinaryFile(const std::string& file) const
+{
+	const std::filesystem::path fullPath = m_dataPath / file;
+
+	std::ifstream input{ fullPath, std::ios::binary | std::ios::ate };
+	if (!input)
+		throw std::runtime_error("Failed to open file: " + fullPath.string());
+
+	const size_t size = std::filesystem::file_size(fullPath);
+
+	std::vector<uint8_t> bytes(size);
+	if (!input.read(reinterpret_cast<char*>(bytes.data()), size))
+		throw std::runtime_error("Failed to read binary file: " + fullPath.string());
+
+	return bytes;
 }

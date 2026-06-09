@@ -23,7 +23,13 @@ if(WIN32 AND NOT EMSCRIPTEN)
           PlayerInputManager.cpp
           PlayerInputManager.h
           TextRenderer.cpp
-          TextRenderer.h)
+          TextRenderer.h
+          TankRenderer.cpp
+          TankRenderer.h
+          EnemyTankAI.cpp
+          EnemyTankAI.h
+          LevelLoader.cpp
+          LevelLoader.h)
 endif()
 
 add_executable(game ${GAME_EXECUTABLE_TYPE}

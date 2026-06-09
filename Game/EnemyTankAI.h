@@ -1,0 +1,13 @@
+//
+// Created by frane on 6/9/2026.
+//
+
+#ifndef PROG4MINIGINPROJECT_ENEMYTANKAI_H
+#define PROG4MINIGINPROJECT_ENEMYTANKAI_H
+
+
+class EnemyTankAI {
+};
+
+
+#endif //PROG4MINIGINPROJECT_ENEMYTANKAI_H
