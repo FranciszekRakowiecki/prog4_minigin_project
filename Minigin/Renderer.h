@@ -43,6 +43,7 @@ namespace dae
 		void RenderText(const Text& text, float x, float y) const;
 		void RenderText(const Text& text, float x, float y, float width, float height) const;
 		void RenderRect(float x, float y, float width, float height, const glm::vec4& color) const;
+		void RenderRectWire(float x, float y, float width, float height, const glm::vec4& color) const;
 
 		SDL_Renderer* GetSDLRenderer() const;
 

@@ -13,10 +13,12 @@
 
 class PlayerInputManager : public dae::Singleton<PlayerInputManager> {
 public:
-    void initialize();
-    void update();
+    void Initialize();
+    void Update();
 
-    const std::vector<PlayerInputHandler>& getPlayers() const;
+    const std::vector<PlayerInputHandler>& GetPlayers() const;
+
+    void SetPlayerJoinCallback(std::function<void(PlayerInputHandler&)> callback);
 
 private:
     std::vector<PlayerInputHandler> m_Players{};
@@ -30,6 +32,8 @@ private:
 
     bool m_HasGamepadPlayer0{false};
     bool m_HasGamepadPlayer1{false};
+
+    std::function<void(PlayerInputHandler&)> m_OnPlayerAddedCallback;
 
     friend class dae::Singleton<PlayerInputManager>;
 };

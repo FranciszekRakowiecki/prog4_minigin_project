@@ -26,12 +26,14 @@ void dae::Text::SetColor(const SDL_Color &color) {
 
 void dae::Text::SetFont(std::shared_ptr<Font> font) {
     m_font = font;
+    m_needsUpdate = true;
 }
 
 dae::Text::Text(const std::string &text, std::shared_ptr<Font> font, const SDL_Color &color) : m_needsUpdate(true), m_text(text), m_color(color), m_font(std::move(font)), m_textTexture(nullptr) {
+    UpdateTexture();
 }
 
-void dae::Text::updateTexture() {
+void dae::Text::UpdateTexture() {
     if (m_font == nullptr)
         return;
     if (m_needsUpdate)
@@ -58,4 +60,11 @@ void dae::Text::updateTexture() {
         m_textTexture = std::make_shared<Texture2D>(texture);
         m_needsUpdate = false;
     }
+}
+
+glm::vec2 dae::Text::GetTextureSize() const {
+    if (m_textTexture != nullptr) {
+        return m_textTexture->GetSize();
+    }
+    return {};
 }

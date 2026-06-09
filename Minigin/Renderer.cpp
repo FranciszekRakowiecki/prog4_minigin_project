@@ -108,7 +108,7 @@ void dae::Renderer::RenderText(const Text &text, float x, float y) const {
 }
 
 void dae::Renderer::RenderText(const Text &text, float x, float y, float width, float height) const {
-	RenderTexture(*text.m_textTexture, x, y,width, height);
+	RenderTexture(*text.m_textTexture.get(), x, y,width, height);
 }
 
 void dae::Renderer::RenderRect(float x, float y, float width, float height, const glm::vec4& color) const {
@@ -119,6 +119,16 @@ void dae::Renderer::RenderRect(float x, float y, float width, float height, cons
 	dst.h = height;
 	SDL_SetRenderDrawColor(GetSDLRenderer(), uint8_t(color.r * 255.0f), uint8_t(color.g * 255.0f), uint8_t(color.b * 255.0f), uint8_t(color.a * 255.0f)); // RAAAH
 	SDL_RenderFillRect(GetSDLRenderer(), &dst);
+}
+
+void dae::Renderer::RenderRectWire(float x, float y, float width, float height, const glm::vec4 &color) const {
+	SDL_FRect dst{};
+	dst.x = x;
+	dst.y = y;
+	dst.w = width;
+	dst.h = height;
+	SDL_SetRenderDrawColor(GetSDLRenderer(), uint8_t(color.r * 255.0f), uint8_t(color.g * 255.0f), uint8_t(color.b * 255.0f), uint8_t(color.a * 255.0f)); // RAAAH
+	SDL_RenderRect(GetSDLRenderer(), &dst);
 }
 
 SDL_Renderer* dae::Renderer::GetSDLRenderer() const { return m_renderer; }

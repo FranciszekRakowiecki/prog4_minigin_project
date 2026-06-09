@@ -56,6 +56,8 @@ namespace dae
 			component->flags = component->GetFlags();
 			m_Components.emplace_back(component);
 
+			component->Start();
+
 			return Reference<T>(component);
 		}
 

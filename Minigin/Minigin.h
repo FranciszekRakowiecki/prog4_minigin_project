@@ -39,5 +39,8 @@ namespace dae
 		Minigin(Minigin&& other) = delete;
 		Minigin& operator=(const Minigin& other) = delete;
 		Minigin& operator=(Minigin&& other) = delete;
+
+		static Minigin& GetInstance();
+		static SDL_Window* GetWindow();
 	};
 }

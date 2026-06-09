@@ -9,8 +9,9 @@
 
 
 class Button : public dae::Component {
-    dae::Text m_Text;
-    glm::vec2 m_Size;
+    dae::Text m_Text{};
+    std::function<void()> m_Callback{};
+    bool m_IsSelected{false};
 public:
 
     int GetFlags() override;
@@ -23,8 +24,14 @@ public:
 
     void SetText(const std::string& text);
 
-    void SetSize(float width, float height);
-    const glm::vec2& GetSize() const;
+    glm::vec2 GetSize() const;
+    void SetCallback(std::function<void()> callback);
+
+    void SetSelected(bool state);
+
+    void UpdateTexture();
+
+    void Execute();
 };
 
 

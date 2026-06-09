@@ -4,6 +4,8 @@
 
 #include "Game.h"
 
+#include <iostream>
+
 #include "Minigin.h"
 #include "PlayerInputManager.h"
 #include "Renderer.h"
@@ -30,7 +32,6 @@ void Game::ChangeState(GameState *state) {
         m_GameState = m_NullGameState.get();
         return;
     }
-    m_GameState->Exit();
     m_GameState = state;
     m_GameState->Enter();
 }
@@ -38,9 +39,9 @@ void Game::ChangeState(GameState *state) {
 void Game::Start() {
     ServiceLocator::GetInstance().setSoundSystem(std::make_unique<SoundSystemSDL>());
 
-    m_GameFont = dae::ResourceManager::GetInstance().LoadFont("Lingua.otf", 30);
+    m_GameFont = dae::ResourceManager::GetInstance().LoadFont("Lingua.otf", FONT_SIZE);
 
-    PlayerInputManager::GetInstance().initialize();
+    PlayerInputManager::GetInstance().Initialize();
 
     // auto font = dae::ResourceManager::GetInstance().LoadFont("Lingua.otf", 36);
     // auto fps = std::make_unique<dae::TextObject>("FPS: ", font);
@@ -54,13 +55,12 @@ void Game::Start() {
 }
 
 void Game::Update() {
+    PlayerInputManager::GetInstance().Update();
     m_GameState->Update();
 }
 
 void Game::Render() {
     m_GameState->Render();
-
-    dae::Renderer::GetInstance().RenderRect(0, 0, 100, 100, glm::vec4(1.0f));
 }
 
 void Game::LoadMainMenu() {
@@ -72,10 +72,20 @@ void Game::LoadSinglePlayer() {
 }
 
 void Game::LoadCoopPlayer() {
+    if (PlayerInputManager::GetInstance().GetPlayers().size() != 2) {
+        // Update text in main menu to show error
+        m_MainMenuState->SetErrorText("Coop mode requires at least 2 players.");
+        return;
+    }
     ChangeState(m_CoopPlayerState.get());
 }
 
 void Game::LoadVersusPlayer() {
+    if (PlayerInputManager::GetInstance().GetPlayers().size() != 2) {
+        // Update text in main menu to show error
+        m_MainMenuState->SetErrorText("Versus mode requires at least 2 players.");
+        return;
+    }
     ChangeState(m_VersusPlayerState.get());
 }
 

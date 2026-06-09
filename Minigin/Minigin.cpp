@@ -152,3 +152,12 @@ void dae::Minigin::SetHook(EngineHook *hook) {
 void dae::Minigin::Stop() {
 	m_quit = true;
 }
+
+dae::Minigin & dae::Minigin::GetInstance() {
+	return *INSTANCE;
+}
+
+SDL_Window * dae::Minigin::GetWindow() {
+	return g_window; // ngl im rather disgusted by the location for the window handle that the base project implements
+	// yuck
+}

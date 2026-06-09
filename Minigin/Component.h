@@ -70,8 +70,8 @@ namespace dae {
         Reference(std::weak_ptr<T> ptr);
         Reference(const Reference&);
         Reference& operator=(const Reference&);
-        Reference(Reference&&);
-        Reference& operator=(Reference&&);
+        Reference(Reference&&) noexcept;
+        Reference& operator=(Reference&&) noexcept ;
 
         T* operator->() const;
         T& operator*() const;
@@ -115,15 +115,16 @@ namespace dae {
     template<typename T>
     dae::Reference<T> & dae::Reference<T>::operator=(const Reference & other) {
         this->m_Ptr = other.m_Ptr;
+        return *this;
     }
 
     template<typename T>
-    Reference<T>::Reference(Reference &&other) {
+    Reference<T>::Reference(Reference &&other) noexcept {
         m_Ptr = std::move(other.m_Ptr);
     }
 
     template<typename T>
-    Reference<T> & Reference<T>::operator=(Reference &&other) {
+    Reference<T> & Reference<T>::operator=(Reference &&other) noexcept {
         m_Ptr = std::move(other.m_Ptr);
         return *this;
     }

@@ -21,7 +21,9 @@ if(WIN32 AND NOT EMSCRIPTEN)
           PlayerInputHandler.cpp
           PlayerInputHandler.h
           PlayerInputManager.cpp
-          PlayerInputManager.h)
+          PlayerInputManager.h
+          TextRenderer.cpp
+          TextRenderer.h)
 endif()
 
 add_executable(game ${GAME_EXECUTABLE_TYPE}

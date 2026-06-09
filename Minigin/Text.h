@@ -28,7 +28,9 @@ namespace dae {
         Text& operator=(const Text& other) = delete;
         Text& operator=(Text&& other) = delete;
 
-        void updateTexture();
+        void UpdateTexture();
+
+        glm::vec2 GetTextureSize() const;
 
     private:
         bool m_needsUpdate{};

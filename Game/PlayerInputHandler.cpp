@@ -7,6 +7,7 @@
 #include <algorithm>
 #include <iostream>
 
+#include "GameTime.h"
 #include "Input.h"
 
 struct KeyMoveInput : public PlayerInputHandler::MoveInput {
@@ -18,11 +19,11 @@ struct KeyMoveInput : public PlayerInputHandler::MoveInput {
     dae::InputKey* moveRightKey{nullptr};
 
     explicit KeyMoveInput(uint32_t gamepad, uint32_t playerIndex);
-    const glm::vec2 & getMove() override;
+    const glm::vec2 & GetMove() override;
 
     void keyInput();
 
-    void update() override;
+    void Update() override;
 };
 
 struct GamepadMoveInput : public PlayerInputHandler::MoveInput {
@@ -36,12 +37,12 @@ struct GamepadMoveInput : public PlayerInputHandler::MoveInput {
 
     explicit GamepadMoveInput(uint32_t gamepad, uint32_t playerIndex);
 
-    const glm::vec2 & getMove() override;
+    const glm::vec2 & GetMove() override;
 
     void gamepadButtonInput();
     void gamepadAxisInput();
 
-    void update() override;
+    void Update() override;
 };
 
 GamepadMoveInput::GamepadMoveInput(uint32_t gamepad, uint32_t playerIndex) : MoveInput(gamepad, playerIndex) {
@@ -59,11 +60,11 @@ GamepadMoveInput::GamepadMoveInput(uint32_t gamepad, uint32_t playerIndex) : Mov
     }
 }
 
-const glm::vec2 & GamepadMoveInput::getMove() {
+const glm::vec2 & GamepadMoveInput::GetMove() {
     return move;
 }
 
-void GamepadMoveInput::update() {
+void GamepadMoveInput::Update() {
     move = {};
     gamepadButtonInput();
     gamepadAxisInput();
@@ -79,9 +80,9 @@ struct KeyShootInput : public PlayerInputHandler::ShootInput {
 
     explicit KeyShootInput(uint32_t gamepad, uint32_t playerIndex);
 
-    bool isShooting() const override;
+    bool IsShooting() const override;
 
-    void update() override;
+    void Update() override;
 };
 
 struct GamepadShootInput : public PlayerInputHandler::ShootInput {
@@ -91,20 +92,20 @@ struct GamepadShootInput : public PlayerInputHandler::ShootInput {
 
     explicit GamepadShootInput(uint32_t gamepad, uint32_t playerIndex);
 
-    bool isShooting() const override;
+    bool IsShooting() const override;
 
-    void update() override;
+    void Update() override;
 };
 
 GamepadShootInput::GamepadShootInput(uint32_t gamepad, uint32_t playerIndex) : ShootInput(gamepad, playerIndex), gamepad(gamepad) {
     shootGamepad = dae::Input::GAMEPAD_BUTTON(gamepad, dae::GamepadButton::A);
 }
 
-bool GamepadShootInput::isShooting() const {
+bool GamepadShootInput::IsShooting() const {
     return shooting;
 }
 
-void GamepadShootInput::update() {
+void GamepadShootInput::Update() {
     shooting = shootGamepad->isPressed();
 }
 
@@ -125,7 +126,7 @@ KeyMoveInput::KeyMoveInput(uint32_t gamepad, uint32_t playerIndex) : MoveInput(g
     }
 }
 
-const glm::vec2 & KeyMoveInput::getMove() {
+const glm::vec2 & KeyMoveInput::GetMove() {
     return move;
 }
 
@@ -137,7 +138,7 @@ void KeyMoveInput::keyInput() {
     move.x += moveLeftKey->isPressed() ? -1.0f : 0.0f;
 }
 
-void KeyMoveInput::update() {
+void KeyMoveInput::Update() {
     move = {};
     keyInput();
 
@@ -167,17 +168,20 @@ KeyShootInput::KeyShootInput(uint32_t gamepad, uint32_t playerIndex) : ShootInpu
     }
 }
 
-bool KeyShootInput::isShooting() const {
+bool KeyShootInput::IsShooting() const {
     return shooting;
 }
 
-void KeyShootInput::update() {
+void KeyShootInput::Update() {
     shooting = shootKey->isPressed();
 }
 
 PlayerInputHandler::PlayerInputHandler(uint32_t gamepadIndex, uint32_t playerIndex, bool isGamepad) :
 m_GamepadIndex(gamepadIndex),
-m_MoveInput(nullptr) {
+m_MoveInput(nullptr),
+m_PlayerIndex(playerIndex),
+m_StartTime(dae::GameTime::GetInstance().GetTime())
+{
     if (isGamepad) {
         m_MoveInput = std::make_unique<GamepadMoveInput>(gamepadIndex, playerIndex);
         m_ShootInput = std::make_unique<GamepadShootInput>(gamepadIndex, playerIndex);
@@ -189,9 +193,13 @@ m_MoveInput(nullptr) {
 }
 
 void PlayerInputHandler::update() {
-    m_MoveInput->update();
-    m_ShootInput->update();
+    m_MoveInput->Update();
+    m_ShootInput->Update();
 
-    m_Move = m_MoveInput->getMove();
-    m_IsShooting = m_ShootInput->isShooting();
+    m_Move = m_MoveInput->GetMove();
+    m_IsShooting = m_ShootInput->IsShooting();
+}
+
+float PlayerInputHandler::GetStartTime() const {
+    return m_StartTime;
 }
