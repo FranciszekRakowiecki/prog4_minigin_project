@@ -15,6 +15,7 @@
 #include "MainMenuState.h"
 #include "SinglePlayerState.h"
 #include "VersusPlayerState.h"
+#include "LevelLoader.h"
 
 class Game final : public dae::Singleton<Game>, public dae::EngineHook {
 public:
@@ -34,6 +35,10 @@ public:
     void LoadCoopPlayer();
     void LoadVersusPlayer();
 
+    LevelData* GetLevel0() const;
+    LevelData* GetLevel1() const;
+    LevelData* GetLevel2() const;
+
     std::shared_ptr<dae::Font> GetGameFont() const;
 
 private:
@@ -45,6 +50,15 @@ private:
 
     std::shared_ptr<dae::Font> m_GameFont;
     GameState* m_GameState;
+
+    std::unique_ptr<LevelData> m_Level0;
+    std::unique_ptr<LevelData> m_Level1;
+    std::unique_ptr<LevelData> m_Level2;
+
+    dae::InputKey* m_SkipLevelKey;
+    dae::InputKey* m_MuteKey;
+
+    bool m_IsGameMuted{false};
 };
 
 

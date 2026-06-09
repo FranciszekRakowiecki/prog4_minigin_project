@@ -3,6 +3,7 @@
 #include "ResourceManager.h"
 
 #include <fstream>
+#include <iostream>
 
 #include "Renderer.h"
 #include "Texture2D.h"
@@ -62,15 +63,20 @@ std::vector<uint8_t> dae::ResourceManager::LoadBinaryFile(const std::string& fil
 {
 	const std::filesystem::path fullPath = m_dataPath / file;
 
-	std::ifstream input{ fullPath, std::ios::binary | std::ios::ate };
-	if (!input)
+	std::ifstream input{ fullPath, std::ios::binary };
+	if (!input) {
+		std::cerr << absolute(fullPath) << std::endl;
 		throw std::runtime_error("Failed to open file: " + fullPath.string());
+	}
 
 	const size_t size = std::filesystem::file_size(fullPath);
+	std::cout << "Size " << size << std::endl;
 
 	std::vector<uint8_t> bytes(size);
-	if (!input.read(reinterpret_cast<char*>(bytes.data()), size))
+	if (!input.read(reinterpret_cast<char*>(bytes.data()), size)) {
+		std::cerr << absolute(fullPath) << std::endl;
 		throw std::runtime_error("Failed to read binary file: " + fullPath.string());
+	}
 
 	return bytes;
 }

@@ -5,13 +5,22 @@
 #ifndef PROG4MINIGINPROJECT_SINGLEPLAYERSTATE_H
 #define PROG4MINIGINPROJECT_SINGLEPLAYERSTATE_H
 #include "GameState.h"
+#include "PlayableGameState.h"
 
 
-class SinglePlayerState : public GameState {
+namespace dae {
+    class Scene;
+}
+
+class SinglePlayerState : public PlayableGameState {
 public:
     void Enter() override;
+    void Exit() override;
     void Update() override {}
     void Render() override {}
+
+private:
+    dae::Scene* m_Scene;
 };
 
 

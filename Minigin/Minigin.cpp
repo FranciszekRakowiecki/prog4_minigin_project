@@ -161,3 +161,11 @@ SDL_Window * dae::Minigin::GetWindow() {
 	return g_window; // ngl im rather disgusted by the location for the window handle that the base project implements
 	// yuck
 }
+
+glm::vec2 dae::Minigin::GetWindowSize() const {
+	SDL_Window* handle = GetWindow();
+	int width, height;
+	SDL_GetWindowSize(handle, &width, &height);
+
+	return { width, height};
+}

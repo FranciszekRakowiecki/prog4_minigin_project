@@ -29,7 +29,11 @@ if(WIN32 AND NOT EMSCRIPTEN)
           EnemyTankAI.cpp
           EnemyTankAI.h
           LevelLoader.cpp
-          LevelLoader.h)
+          LevelLoader.h
+          LevelRenderer.cpp
+          LevelRenderer.h
+          PlayableGameState.cpp
+          PlayableGameState.h)
 endif()
 
 add_executable(game ${GAME_EXECUTABLE_TYPE}

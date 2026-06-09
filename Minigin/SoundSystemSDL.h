@@ -22,9 +22,8 @@ public:
 
     void update() override;
 
-    class Impl;
-
 private:
+    class Impl;
     std::unique_ptr<Impl> m_Impl;
 };
 

@@ -38,8 +38,6 @@ class MainMenuState : public GameState {
 
     void UpdatePlayerInfoText();
 
-    glm::vec2 GetWindowSize() const;
-
     void PlayerJoinCallback(PlayerInputHandler& handler);
 
 public:

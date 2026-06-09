@@ -5,6 +5,7 @@
 
 #include "EngineHook.h"
 #include "Input.h"
+#include <glm/vec2.hpp>
 
 #if __EMSCRIPTEN__
 #define MINIGIN_DATA_PATH std::string("")
@@ -42,5 +43,8 @@ namespace dae
 
 		static Minigin& GetInstance();
 		static SDL_Window* GetWindow();
+
+
+		glm::vec2 GetWindowSize() const;
 	};
 }

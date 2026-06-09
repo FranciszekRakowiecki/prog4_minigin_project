@@ -10,8 +10,6 @@ namespace dae
 	class Texture2D;
 	class GameObject 
 	{
-		std::shared_ptr<Texture2D> m_texture{};
-
 		std::vector<std::shared_ptr<Component>> m_Components{};
 
 		std::vector<std::unique_ptr<GameObject>> m_Children{};

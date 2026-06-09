@@ -32,7 +32,7 @@ void MainMenuState::CreateButton(const std::string &text, std::function<void()> 
 
 void MainMenuState::CreateInfoTexts() {
 
-    glm::vec2 windowSize{GetWindowSize()};
+    glm::vec2 windowSize{dae::Minigin::GetInstance().GetWindowSize()};
     glm::vec2 center{windowSize / 2.0f};
 
     {
@@ -91,7 +91,7 @@ void MainMenuState::UpdateButtonLocations() {
     if (m_Buttons.empty())
         return;
 
-    glm::vec2 windowSize = GetWindowSize();
+    glm::vec2 windowSize = dae::Minigin::GetInstance().GetWindowSize();
 
     glm::vec2 center{ windowSize / 2.0f };
 
@@ -172,17 +172,9 @@ void MainMenuState::UpdatePlayerInfoText() {
     }
 }
 
-glm::vec2 MainMenuState::GetWindowSize() const {
-    SDL_Window* handle = dae::Minigin::GetWindow();
-    int width, height;
-    SDL_GetWindowSize(handle, &width, &height);
-
-    return { width, height};
-}
-
 void MainMenuState::SetErrorText(const std::string &text) {
     if (m_ErrorText) {
-        glm::vec2 windowSize{GetWindowSize()};
+        glm::vec2 windowSize{dae::Minigin::GetInstance().GetWindowSize()};
         glm::vec2 center{windowSize / 2.0f};
 
         m_ErrorText->SetText(text);

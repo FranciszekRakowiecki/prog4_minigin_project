@@ -6,6 +6,7 @@
 
 #include <iostream>
 
+#include "LevelLoader.h"
 #include "Minigin.h"
 #include "PlayerInputManager.h"
 #include "Renderer.h"
@@ -21,7 +22,9 @@ m_MainMenuState(std::make_unique<MainMenuState>()),
 m_SinglePlayerState(std::make_unique<SinglePlayerState>()),
 m_CoopPlayerState(std::make_unique<CoopPlayerState>()),
 m_VersusPlayerState(std::make_unique<VersusPlayerState>()),
-m_GameState(nullptr)
+m_GameState(nullptr),
+m_SkipLevelKey(dae::Input::KEY(SDL_SCANCODE_F1)),
+m_MuteKey(dae::Input::KEY(SDL_SCANCODE_F2))
 {
     m_GameState = m_NullGameState.get();
 }
@@ -51,11 +54,23 @@ void Game::Start() {
     //
     // scene.Add(std::move(fps));
 
+    m_Level0 = std::make_unique<LevelData>(std::move(LevelLoader::LoadFromFile("TronLevel1.tlvl")));
+    m_Level1 = std::make_unique<LevelData>(std::move(LevelLoader::LoadFromFile("TronLevel2.tlvl")));
+    m_Level2 = std::make_unique<LevelData>(std::move(LevelLoader::LoadFromFile("TronLevel3.tlvl")));
+
     LoadMainMenu();
 }
 
 void Game::Update() {
     PlayerInputManager::GetInstance().Update();
+
+    if (m_SkipLevelKey->pressedThisFrame()) {
+        PlayableGameState* playable = dynamic_cast<PlayableGameState*>(m_GameState);
+        if (playable != nullptr) {
+            playable->OnLevelSkip();
+        }
+    }
+
     m_GameState->Update();
 }
 
@@ -87,6 +102,18 @@ void Game::LoadVersusPlayer() {
         return;
     }
     ChangeState(m_VersusPlayerState.get());
+}
+
+LevelData * Game::GetLevel0() const {
+    return m_Level0.get();
+}
+
+LevelData * Game::GetLevel1() const {
+    return m_Level1.get();
+}
+
+LevelData * Game::GetLevel2() const {
+    return m_Level2.get();
 }
 
 std::shared_ptr<dae::Font> Game::GetGameFont() const {
