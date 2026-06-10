@@ -43,6 +43,7 @@ namespace dae
 		GameObject& operator=(GameObject&& other) = delete;
 
 		void Destroy();
+		bool IsDestroyed() const { return m_IsDisposed; }
 
 		// Trying to mirror 1 to 1 with how unity does it ish
 

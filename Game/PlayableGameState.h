@@ -8,6 +8,7 @@
 #include "GameState.h"
 
 #include <cstdint>
+#include <vector>
 #include <glm/vec3.hpp>
 
 namespace dae {
@@ -16,6 +17,7 @@ namespace dae {
 }
 
 class PlayerInputHandler;
+class ProjectileSystem;
 struct LevelData;
 struct LevelSpawnPoint;
 
@@ -44,6 +46,7 @@ protected:
 
     glm::vec3 TileToWorld(uint32_t x, uint32_t y) const;
     dae::Scene* GetScene() const;
+    ProjectileSystem* GetProjectileSystem() const;
 
     virtual void OnLevelLoad(LevelData*, uint32_t) {}
 
@@ -54,6 +57,9 @@ private:
     dae::Scene* m_Scene{nullptr};
     LevelData* m_CurrentLevel{nullptr};
     uint32_t m_CurrentLevelIndex{0};
+    std::vector<dae::GameObject*> m_PlayerObjects{};
+    std::vector<dae::GameObject*> m_EnemyObjects{};
+    ProjectileSystem* m_ProjectileSystem{nullptr};
 };
 
 #endif //PROG4MINIGINPROJECT_PLAYABLEGAMESTATE_H

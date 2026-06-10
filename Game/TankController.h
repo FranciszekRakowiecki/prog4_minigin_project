@@ -5,19 +5,19 @@
 #ifndef PROG4MINIGINPROJECT_TANKCONTROLLER_H
 #define PROG4MINIGINPROJECT_TANKCONTROLLER_H
 #include "Component.h"
+#include "LevelLoader.h"
 
 #include <cstdint>
 #include <glm/vec2.hpp>
 #include <glm/vec3.hpp>
 
 class PlayerInputHandler;
-struct LevelData;
 
 class TankController : public dae::Component {
 public:
     struct PlayerLevelData {
         const LevelData* levelData;
-        const glm::vec3& levelOrigin;
+        glm::vec3 levelOrigin;
         float tileSize;
         uint16_t startTileX;
         uint16_t startTileY;
@@ -28,6 +28,15 @@ public:
 
     void SetPlayerInput(const PlayerInputHandler* handler);
     void SetLevelData(const PlayerLevelData& playerData);
+    void SetMoveSpeedTilesPerSecond(float speed);
+
+    bool IsMoving() const;
+    bool CanMove(Direction direction) const;
+    bool TryMove(Direction direction);
+    void SetFacingDirection(Direction direction);
+    Direction GetFacingDirection() const;
+    uint16_t GetCurrentTileX() const;
+    uint16_t GetCurrentTileY() const;
 
 private:
     const PlayerInputHandler* m_PlayerInput{nullptr};
@@ -41,6 +50,7 @@ private:
     glm::vec3 m_LevelOrigin{};
     float m_TileSize{16.0f};
     float m_MoveSpeedTilesPerSecond{6.0f};
+    Direction m_FacingDirection{Direction::Up};
 
     TilePosition m_CurrentTile{};
     TilePosition m_TargetTile{};
@@ -53,6 +63,7 @@ private:
     TilePosition GetRequestedDirection() const;
     void StartMove(const TilePosition& direction);
     void SetFacingDirection(const TilePosition& direction);
+    static TilePosition DirectionToTilePosition(Direction direction);
 };
 
 

@@ -97,6 +97,57 @@ struct GamepadShootInput : public PlayerInputHandler::ShootInput {
     void Update() override;
 };
 
+struct KeyShootLock : public PlayerInputHandler::ShootLock {
+    bool isLocked{false};
+    dae::InputKey* lockKey{nullptr};
+
+    explicit KeyShootLock(uint32_t gamepad, uint32_t playerIndex);
+    bool IsLocked() const override;
+    void Update() override;
+};
+
+struct GamepadShootLock : public PlayerInputHandler::ShootLock {
+    bool isLocked{false};
+    dae::InputGamepadButton* lockGamepadButton{nullptr};
+
+    explicit GamepadShootLock(uint32_t gamepad, uint32_t playerIndex);
+    bool IsLocked() const override;
+    void Update() override;
+};
+
+GamepadShootLock::GamepadShootLock(uint32_t gamepad, uint32_t playerIndex) : ShootLock(gamepad, playerIndex) {
+    lockGamepadButton = dae::Input::GAMEPAD_BUTTON(gamepad, dae::GamepadButton::LEFT_THUMB);
+}
+
+bool GamepadShootLock::IsLocked() const {
+    return isLocked;
+}
+
+void GamepadShootLock::Update() {
+    if (lockGamepadButton->pressedThisFrame()) {
+        isLocked = !isLocked;
+    }
+}
+
+KeyShootLock::KeyShootLock(uint32_t gamepad, uint32_t playerIndex) : ShootLock(gamepad, playerIndex) {
+    if (playerIndex == 0) {
+        lockKey = dae::Input::KEY(SDL_SCANCODE_C);
+    }
+    else {
+        lockKey = dae::Input::KEY(SDL_SCANCODE_RSHIFT);
+    }
+}
+
+bool KeyShootLock::IsLocked() const {
+    return isLocked;
+}
+
+void KeyShootLock::Update() {
+    if (lockKey->pressedThisFrame()) {
+        isLocked = !isLocked;
+    }
+}
+
 GamepadShootInput::GamepadShootInput(uint32_t gamepad, uint32_t playerIndex) : ShootInput(gamepad, playerIndex), gamepad(gamepad) {
     shootGamepad = dae::Input::GAMEPAD_BUTTON(gamepad, dae::GamepadButton::A);
 }
@@ -185,19 +236,23 @@ m_StartTime(dae::GameTime::GetInstance().GetTime())
     if (isGamepad) {
         m_MoveInput = std::make_unique<GamepadMoveInput>(gamepadIndex, playerIndex);
         m_ShootInput = std::make_unique<GamepadShootInput>(gamepadIndex, playerIndex);
+        m_ShootLock = std::make_unique<GamepadShootLock>(gamepadIndex, playerIndex);
     }
     else {
         m_MoveInput = std::make_unique<KeyMoveInput>(gamepadIndex, playerIndex);
         m_ShootInput = std::make_unique<KeyShootInput>(gamepadIndex, playerIndex);
+        m_ShootLock = std::make_unique<KeyShootLock>(gamepadIndex, playerIndex);
     }
 }
 
 void PlayerInputHandler::update() {
     m_MoveInput->Update();
     m_ShootInput->Update();
+    m_ShootLock->Update();
 
     m_Move = m_MoveInput->GetMove();
     m_IsShooting = m_ShootInput->IsShooting();
+    m_IsLocked = m_ShootLock->IsLocked();
 }
 
 float PlayerInputHandler::GetStartTime() const {

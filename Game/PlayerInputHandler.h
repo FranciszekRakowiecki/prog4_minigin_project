@@ -27,11 +27,21 @@ public:
         virtual void Update() = 0;
     };
 
+    struct ShootLock {
+        virtual ~ShootLock() = default;
+
+        ShootLock(uint32_t, uint32_t) {};
+
+        virtual bool IsLocked() const = 0;
+        virtual void Update() = 0;
+    };
+
     PlayerInputHandler(uint32_t gamepadIndex, uint32_t playerIndex, bool isGamepad);
     void update();
 
     const glm::vec2& GetMove() const { return m_Move; }
     bool IsShooting() const { return m_IsShooting; }
+    bool IsLocked() const { return m_IsLocked; }
     uint32_t GetGamepadIndex() const { return m_GamepadIndex; }
     uint32_t GetPlayerIndex() const { return m_PlayerIndex; }
     bool IsGamepad() const { return m_IsGamepad; }
@@ -41,6 +51,7 @@ public:
 private:
     bool m_IsShooting{false};
     bool m_IsGamepad{false};
+    bool m_IsLocked{false};
     glm::vec2 m_Move{0.0f};
     uint32_t m_GamepadIndex;
     uint32_t m_PlayerIndex;
@@ -48,6 +59,7 @@ private:
 
     std::unique_ptr<MoveInput> m_MoveInput;
     std::unique_ptr<ShootInput> m_ShootInput;
+    std::unique_ptr<ShootLock> m_ShootLock;
 };
 
 

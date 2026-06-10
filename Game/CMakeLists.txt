@@ -38,8 +38,12 @@ if(WIN32 AND NOT EMSCRIPTEN)
           Shape.h
           TankController.cpp
           TankController.h
+          ProjectileSystem.cpp
+          ProjectileSystem.h
           PlayerHealth.cpp
-          PlayerHealth.h)
+          PlayerHealth.h
+          ScoreKeeper.cpp
+          ScoreKeeper.h)
 endif()
 
 add_executable(game ${GAME_EXECUTABLE_TYPE}

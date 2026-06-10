@@ -43,6 +43,7 @@ void Game::Start() {
     ServiceLocator::GetInstance().setSoundSystem(std::make_unique<SoundSystemSDL>());
 
     m_GameFont = dae::ResourceManager::GetInstance().LoadFont("Lingua.otf", FONT_SIZE);
+    m_ScoreKeeper.LoadHighScores();
 
     PlayerInputManager::GetInstance().Initialize();
 
@@ -132,4 +133,8 @@ LevelData * Game::GetLevel2() const {
 
 std::shared_ptr<dae::Font> Game::GetGameFont() const {
     return m_GameFont;
+}
+
+ScoreKeeper& Game::GetScoreKeeper() {
+    return m_ScoreKeeper;
 }

@@ -5,13 +5,12 @@
 #ifndef PROG4MINIGINPROJECT_VERSUSPLAYERSTATE_H
 #define PROG4MINIGINPROJECT_VERSUSPLAYERSTATE_H
 #include "GameState.h"
+#include "PlayableGameState.h"
 
 
-class VersusPlayerState : public GameState {
-public:
-    void Enter() override;
-    void Update() override {}
-    void Render() override {}
+class VersusPlayerState : public PlayableGameState {
+protected:
+    void OnLevelLoad(LevelData *, uint32_t) override;
 };
 
 

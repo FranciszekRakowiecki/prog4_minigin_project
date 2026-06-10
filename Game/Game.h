@@ -16,6 +16,7 @@
 #include "SinglePlayerState.h"
 #include "VersusPlayerState.h"
 #include "LevelLoader.h"
+#include "ScoreKeeper.h"
 
 class Game final : public dae::Singleton<Game>, public dae::EngineHook {
 public:
@@ -42,6 +43,7 @@ public:
     LevelData* GetLevel2() const;
 
     std::shared_ptr<dae::Font> GetGameFont() const;
+    ScoreKeeper& GetScoreKeeper();
 
 private:
     std::unique_ptr<NullGameState> m_NullGameState;
@@ -52,6 +54,7 @@ private:
 
     std::shared_ptr<dae::Font> m_GameFont;
     GameState* m_GameState;
+    ScoreKeeper m_ScoreKeeper{};
 
     std::unique_ptr<LevelData> m_Level0;
     std::unique_ptr<LevelData> m_Level1;

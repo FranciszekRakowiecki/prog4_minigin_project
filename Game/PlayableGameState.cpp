@@ -9,11 +9,13 @@
 #include <memory>
 
 #include "Game.h"
+#include "EnemyTankAI.h"
 #include "GameObject.h"
 #include "LevelLoader.h"
 #include "LevelRenderer.h"
 #include "Minigin.h"
 #include "PlayerHealth.h"
+#include "ProjectileSystem.h"
 #include "Scene.h"
 #include "SceneManager.h"
 #include "TankController.h"
@@ -80,6 +82,16 @@ void PlayableGameState::LoadLevelWithData(LevelData* data, uint32_t index) {
 
     m_Scene->Add(std::move(levelObject));
 
+    const glm::vec3 levelOrigin = TileToWorld(0, 0);
+    const float tileSize = TileToWorld(1, 0).x - levelOrigin.x;
+    std::unique_ptr<dae::GameObject> projectileObject{std::make_unique<dae::GameObject>()};
+    dae::Reference<ProjectileSystem> projectileSystem = projectileObject->AddComponent<ProjectileSystem>();
+
+    projectileSystem->SetLevelData(m_CurrentLevel, levelOrigin, tileSize);
+    m_ProjectileSystem = projectileSystem.get();
+
+    m_Scene->Add(std::move(projectileObject));
+
     OnLevelLoad(m_CurrentLevel, m_CurrentLevelIndex);
 }
 
@@ -106,21 +118,68 @@ dae::GameObject* PlayableGameState::SpawnPlayer(const PlayerInputHandler* handle
     const glm::vec3 levelOrigin = TileToWorld(0, 0);
     const float tileSize = TileToWorld(1, 0).x - levelOrigin.x;
     TankController::PlayerLevelData data {
-    m_CurrentLevel,
+        m_CurrentLevel,
         levelOrigin,
         tileSize,
         spawnPoint->tileX,
         spawnPoint->tileY
     };
     tankController->SetLevelData(data);
+    tankController->SetFacingDirection(spawnPoint->direction);
 
     m_Scene->Add(std::move(playerObject));
+    m_PlayerObjects.emplace_back(player);
+    if (m_ProjectileSystem != nullptr) {
+        m_ProjectileSystem->RegisterPlayer(player);
+    }
+
     return player;
 }
 
 void PlayableGameState::SpawnEnemies() {
     if (m_Scene == nullptr || m_CurrentLevel == nullptr) {
         return;
+    }
+
+    const glm::vec3 levelOrigin = TileToWorld(0, 0);
+    const float tileSize = TileToWorld(1, 0).x - levelOrigin.x;
+
+    for (const LevelEnemySpawn& enemySpawn : m_CurrentLevel->enemies) {
+        std::unique_ptr<dae::GameObject> enemyObject = std::make_unique<dae::GameObject>();
+        dae::GameObject* enemy = enemyObject.get();
+
+        dae::Reference<TankRenderer> tankRenderer = enemyObject->AddComponent<TankRenderer>();
+        dae::Reference<TankController> tankController = enemyObject->AddComponent<TankController>();
+        dae::Reference<EnemyTankAI> enemyAI = enemyObject->AddComponent<EnemyTankAI>();
+
+        if (enemySpawn.type == EnemyType::Recognizer) {
+            tankRenderer->SetTankColor({1.0f, 0.85f, 0.1f, 1.0f});
+            tankController->SetMoveSpeedTilesPerSecond(7.0f);
+        }
+        else {
+            tankRenderer->SetTankColor({0.1f, 0.35f, 1.0f, 1.0f});
+            tankController->SetMoveSpeedTilesPerSecond(5.0f);
+        }
+
+        TankController::PlayerLevelData data {
+            m_CurrentLevel,
+            levelOrigin,
+            tileSize,
+            enemySpawn.tileX,
+            enemySpawn.tileY
+        };
+        tankController->SetLevelData(data);
+        tankController->SetFacingDirection(enemySpawn.direction);
+
+        enemyAI->SetEnemyType(enemySpawn.type);
+        enemyAI->SetLevelData(m_CurrentLevel, levelOrigin, tileSize);
+        enemyAI->SetTargets(m_PlayerObjects);
+
+        m_Scene->Add(std::move(enemyObject));
+        m_EnemyObjects.emplace_back(enemy);
+        if (m_ProjectileSystem != nullptr) {
+            m_ProjectileSystem->RegisterEnemy(enemy);
+        }
     }
 }
 
@@ -172,7 +231,15 @@ dae::Scene* PlayableGameState::GetScene() const {
     return m_Scene;
 }
 
+ProjectileSystem* PlayableGameState::GetProjectileSystem() const {
+    return m_ProjectileSystem;
+}
+
 void PlayableGameState::UnloadCurrentScene() {
+    m_PlayerObjects.clear();
+    m_EnemyObjects.clear();
+    m_ProjectileSystem = nullptr;
+
     if (m_Scene != nullptr) {
         dae::SceneManager::GetInstance().UnloadScene(m_Scene);
         m_Scene = nullptr;

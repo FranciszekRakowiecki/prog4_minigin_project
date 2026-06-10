@@ -9,7 +9,6 @@
 
 #include "GameObject.h"
 #include "GameTime.h"
-#include "LevelLoader.h"
 #include "PlayerInputHandler.h"
 
 int TankController::GetFlags() {
@@ -17,7 +16,7 @@ int TankController::GetFlags() {
 }
 
 void TankController::Update() {
-    if (m_LevelData == nullptr || m_PlayerInput == nullptr) {
+    if (m_LevelData == nullptr) {
         return;
     }
 
@@ -34,6 +33,10 @@ void TankController::Update() {
 
         m_CurrentTile = m_TargetTile;
         GetParent()->transform.SetWorldPosition(m_TargetPosition);
+    }
+
+    if (m_PlayerInput == nullptr) {
+        return;
     }
 
     const TilePosition direction = GetRequestedDirection();
@@ -57,6 +60,46 @@ void TankController::SetLevelData(const PlayerLevelData &playerData) {
     m_TargetPosition = TileCenterToWorld(m_CurrentTile);
 
     GetParent()->transform.SetWorldPosition(m_TargetPosition);
+}
+
+void TankController::SetMoveSpeedTilesPerSecond(float speed) {
+    m_MoveSpeedTilesPerSecond = std::max(0.0f, speed);
+}
+
+bool TankController::IsMoving() const {
+    return m_MoveProgress < 1.0f;
+}
+
+bool TankController::CanMove(Direction direction) const {
+    const TilePosition offset = DirectionToTilePosition(direction);
+    return CanMoveTo({m_CurrentTile.x + offset.x, m_CurrentTile.y + offset.y});
+}
+
+bool TankController::TryMove(Direction direction) {
+    if (IsMoving() || !CanMove(direction)) {
+        return false;
+    }
+
+    SetFacingDirection(direction);
+    StartMove(DirectionToTilePosition(direction));
+    return true;
+}
+
+void TankController::SetFacingDirection(Direction direction) {
+    m_FacingDirection = direction;
+    SetFacingDirection(DirectionToTilePosition(direction));
+}
+
+Direction TankController::GetFacingDirection() const {
+    return m_FacingDirection;
+}
+
+uint16_t TankController::GetCurrentTileX() const {
+    return uint16_t(std::max(0, m_CurrentTile.x));
+}
+
+uint16_t TankController::GetCurrentTileY() const {
+    return uint16_t(std::max(0, m_CurrentTile.y));
 }
 
 glm::vec3 TankController::TileCenterToWorld(const TilePosition& tile) const {
@@ -118,15 +161,34 @@ void TankController::SetFacingDirection(const TilePosition& direction) {
     constexpr float pi = 3.14159265359f;
 
     if (direction.x > 0) {
+        m_FacingDirection = Direction::Right;
         GetParent()->transform.SetRotation(0.0f);
     }
     else if (direction.x < 0) {
+        m_FacingDirection = Direction::Left;
         GetParent()->transform.SetRotation(pi);
     }
     else if (direction.y > 0) {
+        m_FacingDirection = Direction::Down;
         GetParent()->transform.SetRotation(halfPi);
     }
     else if (direction.y < 0) {
+        m_FacingDirection = Direction::Up;
         GetParent()->transform.SetRotation(-halfPi);
     }
+}
+
+TankController::TilePosition TankController::DirectionToTilePosition(Direction direction) {
+    switch (direction) {
+        case Direction::Up:
+            return {0, -1};
+        case Direction::Right:
+            return {1, 0};
+        case Direction::Down:
+            return {0, 1};
+        case Direction::Left:
+            return {-1, 0};
+    }
+
+    return {};
 }
