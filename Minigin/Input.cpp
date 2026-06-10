@@ -515,6 +515,8 @@ CommandCallbackId InputCommand::addListener(CommandCallbackFunc cb) {
 }
 
 void InputCommand::removeListener(CommandCallbackId idx) {
+    if (onPerformed.size() == 0)
+        return;
     std::erase_if(onPerformed, [idx](const CommandCallback& callback) { return idx == callback.id; });
 }
 

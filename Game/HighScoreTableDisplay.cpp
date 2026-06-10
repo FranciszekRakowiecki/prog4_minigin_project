@@ -17,8 +17,7 @@ int HighScoreTableDisplay::GetFlags() {
 }
 
 void HighScoreTableDisplay::Start() {
-    dae::Reference<TextRenderer> textRenderer = GetParent()->GetComponent<TextRenderer>();
-    m_TextRenderer = textRenderer.get();
+    m_TextRenderer = GetParent()->GetComponent<TextRenderer>();
     Refresh();
 }
 
@@ -37,10 +36,9 @@ void HighScoreTableDisplay::SetTitle(const std::string& title) {
 }
 
 void HighScoreTableDisplay::Refresh() {
-    if (m_TextRenderer == nullptr) {
-        dae::Reference<TextRenderer> textRenderer = GetParent()->GetComponent<TextRenderer>();
-        m_TextRenderer = textRenderer.get();
-        if (m_TextRenderer == nullptr) {
+    if (!m_TextRenderer) {
+        m_TextRenderer = GetParent()->GetComponent<TextRenderer>();
+        if (!m_TextRenderer) {
             return;
         }
     }

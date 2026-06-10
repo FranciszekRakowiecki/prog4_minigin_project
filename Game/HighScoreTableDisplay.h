@@ -22,7 +22,7 @@ public:
     void Refresh();
 
 private:
-    TextRenderer* m_TextRenderer{nullptr};
+    dae::Reference<TextRenderer> m_TextRenderer{};
     bool m_ShowPlayerScores{true};
     std::string m_Title{"HIGH SCORES"};
 
