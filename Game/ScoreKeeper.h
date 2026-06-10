@@ -1,0 +1,16 @@
+//
+// Created by frane on 6/10/2026.
+//
+
+#ifndef PROG4MINIGINPROJECT_SCOREKEEPER_H
+#define PROG4MINIGINPROJECT_SCOREKEEPER_H
+
+
+
+class ScoreKeeper {
+
+};
+
+
+
+#endif //PROG4MINIGINPROJECT_SCOREKEEPER_H
