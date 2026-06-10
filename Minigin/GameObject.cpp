@@ -102,15 +102,6 @@ void dae::GameObject::Update() {
 
 void dae::GameObject::Render() const
 {
-	if (!m_texture)
-		return;
-	const auto& pos = transform.GetWorldPosition();
-	Renderer::GetInstance().RenderTexture(*m_texture, pos.x, pos.y);
-}
-
-void dae::GameObject::SetTexture(const std::string& filename)
-{
-	m_texture = ResourceManager::GetInstance().LoadTexture(filename);
 }
 
 void dae::GameObject::SetPosition(float x, float y)

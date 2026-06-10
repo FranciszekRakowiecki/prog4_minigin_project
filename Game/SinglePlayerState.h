@@ -19,6 +19,8 @@ public:
     void Update() override {}
     void Render() override {}
 
+    void OnLevelSkip() override;
+
 private:
     dae::Scene* m_Scene;
 };

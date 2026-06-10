@@ -35,6 +35,8 @@ public:
     void LoadCoopPlayer();
     void LoadVersusPlayer();
 
+    bool IsInMainMenu() const;
+
     LevelData* GetLevel0() const;
     LevelData* GetLevel1() const;
     LevelData* GetLevel2() const;

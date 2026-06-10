@@ -33,7 +33,13 @@ if(WIN32 AND NOT EMSCRIPTEN)
           LevelRenderer.cpp
           LevelRenderer.h
           PlayableGameState.cpp
-          PlayableGameState.h)
+          PlayableGameState.h
+          Shape.cpp
+          Shape.h
+          TankController.cpp
+          TankController.h
+          PlayerHealth.cpp
+          PlayerHealth.h)
 endif()
 
 add_executable(game ${GAME_EXECUTABLE_TYPE}

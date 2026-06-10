@@ -25,7 +25,7 @@ void LevelRenderer::Render() {
     }
 }
 
-void LevelRenderer::SetLevelData(LevelData *levelData) {
+void LevelRenderer::SetLevelData(const LevelData *levelData) {
     m_LevelData = levelData;
     if (m_LevelData == nullptr)
         return;

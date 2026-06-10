@@ -6,6 +6,7 @@
 
 #include <iostream>
 
+#include "Game.h"
 #include "Input.h"
 
 void PlayerInputManager::Initialize() {
@@ -30,6 +31,8 @@ void PlayerInputManager::SetPlayerJoinCallback(std::function<void(PlayerInputHan
 PlayerInputManager::PlayerInputManager() {
     m_AnyKeyCallbackId = dae::Input::getAnyPerformed().addListener([&](const dae::CommandContext& ctx) {
         if (m_Players.size() >= 2) // Max 2 players in the game
+            return;
+        if (!Game::GetInstance().IsInMainMenu())
             return;
         if (ctx.type == dae::CommandType::KEY_PRESS) {
             // std::cout << "Keypress" << std::endl;

@@ -131,4 +131,8 @@ void dae::Renderer::RenderRectWire(float x, float y, float width, float height, 
 	SDL_RenderRect(GetSDLRenderer(), &dst);
 }
 
+void dae::Renderer::RenderShape(const Shape::Buffer &worldBuffer, const Texture2D* texture) const {
+	SDL_RenderGeometry(GetSDLRenderer(), texture ? texture->GetSDLTexture() : nullptr, worldBuffer.vertices.data(), worldBuffer.vertices.size(), worldBuffer.indices.data(), worldBuffer.indices.size());
+}
+
 SDL_Renderer* dae::Renderer::GetSDLRenderer() const { return m_renderer; }

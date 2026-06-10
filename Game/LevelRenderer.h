@@ -14,14 +14,14 @@ public:
 
     void Render() override;
 
-    void SetLevelData(LevelData* levelData);
+    void SetLevelData(const LevelData* levelData);
 
     void Start() override;
 
     float GetResolution() const;
 
 private:
-    LevelData* m_LevelData{nullptr};
+    const LevelData* m_LevelData{nullptr};
     float m_TileSize{16.0f};
 };
 

@@ -71,6 +71,16 @@ void Game::Update() {
         }
     }
 
+    if (m_MuteKey->pressedThisFrame()) {
+        m_IsGameMuted = !m_IsGameMuted;
+        if (m_IsGameMuted) {
+            ServiceLocator::GetInstance().setSoundSystem(nullptr);
+        }
+        else {
+            ServiceLocator::GetInstance().setSoundSystem(std::make_unique<SoundSystemSDL>());
+        }
+    }
+
     m_GameState->Update();
 }
 
@@ -102,6 +112,10 @@ void Game::LoadVersusPlayer() {
         return;
     }
     ChangeState(m_VersusPlayerState.get());
+}
+
+bool Game::IsInMainMenu() const {
+    return m_GameState == m_MainMenuState.get();
 }
 
 LevelData * Game::GetLevel0() const {

@@ -2,6 +2,7 @@
 #include <vector>
 #include <SDL3/SDL.h>
 #include "Singleton.h"
+#include "../Game/Shape.h"
 #include "glm/vec4.hpp"
 
 namespace dae {
@@ -44,6 +45,7 @@ namespace dae
 		void RenderText(const Text& text, float x, float y, float width, float height) const;
 		void RenderRect(float x, float y, float width, float height, const glm::vec4& color) const;
 		void RenderRectWire(float x, float y, float width, float height, const glm::vec4& color) const;
+		void RenderShape(const Shape::Buffer& worldBuffer, const Texture2D* texture = nullptr) const;
 
 		SDL_Renderer* GetSDLRenderer() const;
 

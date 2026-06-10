@@ -33,7 +33,6 @@ namespace dae
 		virtual void Update();
 		virtual void Render() const;
 
-		void SetTexture(const std::string& filename);
 		void SetPosition(float x, float y);
 
 		GameObject();
