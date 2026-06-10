@@ -103,7 +103,16 @@ dae::GameObject* PlayableGameState::SpawnPlayer(const PlayerInputHandler* handle
     playerObject->AddComponent<PlayerHealth>();
     tankController->SetPlayerInput(handler);
 
-    player->transform.SetWorldPosition(TileToWorld(spawnPoint->tileX, spawnPoint->tileY));
+    const glm::vec3 levelOrigin = TileToWorld(0, 0);
+    const float tileSize = TileToWorld(1, 0).x - levelOrigin.x;
+    TankController::PlayerLevelData data {
+    m_CurrentLevel,
+        levelOrigin,
+        tileSize,
+        spawnPoint->tileX,
+        spawnPoint->tileY
+    };
+    tankController->SetLevelData(data);
 
     m_Scene->Add(std::move(playerObject));
     return player;
@@ -126,7 +135,24 @@ void PlayableGameState::RespawnPlayer(dae::GameObject* player) {
         std::cout << "Player has lost a life and respawned." << std::endl;
     }
 
-    player->transform.SetWorldPosition(TileToWorld(m_CurrentLevel->spawns[0].tileX, m_CurrentLevel->spawns[0].tileY));
+    const LevelSpawnPoint& spawn = m_CurrentLevel->spawns[0];
+    const glm::vec3 levelOrigin = TileToWorld(0, 0);
+    const float tileSize = TileToWorld(1, 0).x - levelOrigin.x;
+
+    dae::Reference<TankController> tankController = player->GetComponent<TankController>();
+    if (tankController) {
+        TankController::PlayerLevelData data {
+            m_CurrentLevel,
+            levelOrigin,
+            tileSize,
+            spawn.tileX,
+            spawn.tileY
+        };
+        tankController->SetLevelData(data);
+        return;
+    }
+
+    player->transform.SetWorldPosition(TileToWorld(spawn.tileX, spawn.tileY) + glm::vec3{tileSize * 0.5f, tileSize * 0.5f, 0.0f});
 }
 
 glm::vec3 PlayableGameState::TileToWorld(uint32_t x, uint32_t y) const {
@@ -137,7 +163,7 @@ glm::vec3 PlayableGameState::TileToWorld(uint32_t x, uint32_t y) const {
     const glm::vec2 windowSize{dae::Minigin::GetInstance().GetWindowSize()};
     const float tileSize = (windowSize.y - 100.0f) / float(m_CurrentLevel->height);
     const float levelResolution{m_CurrentLevel->height * tileSize};
-    const glm::vec3 levelOffset{windowSize.x / 2.0f - levelResolution / 2.0f, 0.0f, 100.0f};
+    const glm::vec3 levelOffset{windowSize.x / 2.0f - levelResolution / 2.0f, 100.0f, 0.0f};
 
     return levelOffset + glm::vec3{x * tileSize, y * tileSize, 0.0f};
 }

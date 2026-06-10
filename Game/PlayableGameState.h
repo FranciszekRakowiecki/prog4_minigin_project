@@ -45,7 +45,7 @@ protected:
     glm::vec3 TileToWorld(uint32_t x, uint32_t y) const;
     dae::Scene* GetScene() const;
 
-    virtual void OnLevelLoad(LevelData* data, uint32_t index) {}
+    virtual void OnLevelLoad(LevelData*, uint32_t) {}
 
 private:
     void UnloadCurrentScene();

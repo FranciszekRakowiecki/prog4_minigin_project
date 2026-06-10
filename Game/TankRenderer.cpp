@@ -13,10 +13,10 @@ void TankRenderer::Start() {
         0, 1, 2, 0, 2, 3
     };
 
-    AppendVertice(vertices, { 0.0f, 5.0f });
-    AppendVertice(vertices, { 30.0f, 5.0f });
-    AppendVertice(vertices, { 30.0f, -5.0f });
-    AppendVertice(vertices, { 0.0f, -5.0f });
+    AppendVertice(vertices, { 0.0f, 3.0f });
+    AppendVertice(vertices, { 20.0f, 3.0f });
+    AppendVertice(vertices, { 20.0f, -3.0f });
+    AppendVertice(vertices, { 0.0f, -3.0f });
 
     m_Barrel.SetVertices(vertices);
     m_Barrel.SetIndices(indices);
@@ -29,7 +29,7 @@ int TankRenderer::GetFlags() {
 
 void TankRenderer::Render() {
     const glm::vec3 position{GetParent()->transform.GetWorldPosition()};
-    dae::Renderer::GetInstance().RenderRect(position.x - 15, position.y - 15, 30, 30, m_TankColor);
+    dae::Renderer::GetInstance().RenderRect(position.x - 10, position.y - 10, 20, 20, m_TankColor);
     dae::Renderer::GetInstance().RenderShape(m_Barrel.GetWorldBuffer(GetParent()->transform));
 }
 
