@@ -4,25 +4,15 @@
 
 #include "SinglePlayerState.h"
 
-#include "Game.h"
-#include "LevelRenderer.h"
-#include "Minigin.h"
-#include "SceneManager.h"
-#include "TankController.h"
-#include "TankRenderer.h"
+#include <vector>
 
-void SinglePlayerState::Enter() {
-    m_Scene = dae::SceneManager::GetInstance().CreateScene();
-    LoadLevel0(m_Scene);
+#include "PlayerInputManager.h"
 
+void SinglePlayerState::OnLevelLoad(LevelData*, uint32_t) {
+    const std::vector<PlayerInputHandler>& players = PlayerInputManager::GetInstance().GetPlayers();
+    if (!players.empty()) {
+        SpawnPlayer(&players[0]);
+    }
 
-}
-
-void SinglePlayerState::Exit() {
-    dae::SceneManager::GetInstance().UnloadScene(m_Scene);
-    m_Scene = nullptr;
-}
-
-void SinglePlayerState::OnLevelSkip() {
-
+    SpawnEnemies();
 }

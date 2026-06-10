@@ -4,25 +4,14 @@
 
 #ifndef PROG4MINIGINPROJECT_SINGLEPLAYERSTATE_H
 #define PROG4MINIGINPROJECT_SINGLEPLAYERSTATE_H
-#include "GameState.h"
 #include "PlayableGameState.h"
 
 
-namespace dae {
-    class Scene;
-}
+struct LevelData;
 
 class SinglePlayerState : public PlayableGameState {
-public:
-    void Enter() override;
-    void Exit() override;
-    void Update() override {}
-    void Render() override {}
-
-    void OnLevelSkip() override;
-
-private:
-    dae::Scene* m_Scene;
+protected:
+    void OnLevelLoad(LevelData* data, uint32_t index) override;
 };
 
 

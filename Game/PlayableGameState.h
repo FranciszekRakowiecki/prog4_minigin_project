@@ -4,46 +4,56 @@
 
 #ifndef PROG4MINIGINPROJECT_PLAYABLEGAMESTATE_H
 #define PROG4MINIGINPROJECT_PLAYABLEGAMESTATE_H
+
 #include "GameState.h"
+
+#include <cstdint>
 #include <glm/vec3.hpp>
-
-#include "Component.h"
-
 
 namespace dae {
     class GameObject;
     class Scene;
-    struct InputKey;
 }
 
 class PlayerInputHandler;
 struct LevelData;
+struct LevelSpawnPoint;
 
 class PlayableGameState : public GameState {
 public:
-    void LoadLevel0(dae::Scene* scene);
-    void LoadLevel1(dae::Scene* scene);
-    void LoadLevel2(dae::Scene* scene);
+    void Enter() override;
+    void Exit() override;
+    void Update() override {}
+    void Render() override {}
 
-    void LoadLevelWithData(dae::Scene* scene, const LevelData* data, uint32_t index);
+    virtual void OnLevelSkip();
 
-    void SpawnPlayer(dae::Scene* scene, const LevelData* data, const PlayerInputHandler* handler);
-    void SpawnEnemies(dae::Scene* scene, const LevelData* data);
-
-    void RespawnPlayer(dae::GameObject* player, const LevelData* data);
-
-    glm::vec3 TiletoWorld(uint32_t x, uint32_t y, const LevelData* data);
-
-    virtual void OnLevelSkip() {}
-    virtual void OnLevelLoad(dae::Scene* scene, const LevelData* data, uint32_t index) {}
-    virtual void UnloadCurrentScene() {}
-
-    const LevelData* GetCurrentLevelData() const;
+    LevelData* GetCurrentLevelData() const;
     uint32_t GetCurrentLevelIndex() const;
+
+protected:
+    void LoadLevel(uint32_t index);
+    void LoadLevel0();
+    void LoadLevel1();
+    void LoadLevel2();
+    void LoadLevelWithData(LevelData* data, uint32_t index);
+
+    dae::GameObject* SpawnPlayer(const PlayerInputHandler* handler);
+    void SpawnEnemies();
+    void RespawnPlayer(dae::GameObject* player);
+
+    glm::vec3 TileToWorld(uint32_t x, uint32_t y) const;
+    dae::Scene* GetScene() const;
+
+    virtual void OnLevelLoad(LevelData* data, uint32_t index) {}
+
 private:
-    const LevelData* m_CurrentLevel{nullptr};
+    void UnloadCurrentScene();
+    const LevelSpawnPoint* FindSpawnPoint(uint32_t playerIndex) const;
+
+    dae::Scene* m_Scene{nullptr};
+    LevelData* m_CurrentLevel{nullptr};
     uint32_t m_CurrentLevelIndex{0};
 };
-
 
 #endif //PROG4MINIGINPROJECT_PLAYABLEGAMESTATE_H

@@ -4,84 +4,173 @@
 
 #include "PlayableGameState.h"
 
+#include <cstddef>
 #include <iostream>
+#include <memory>
 
 #include "Game.h"
 #include "GameObject.h"
+#include "LevelLoader.h"
 #include "LevelRenderer.h"
 #include "Minigin.h"
 #include "PlayerHealth.h"
 #include "Scene.h"
+#include "SceneManager.h"
 #include "TankController.h"
 #include "TankRenderer.h"
 #include "glm/vec2.hpp"
 
-void PlayableGameState::LoadLevel0(dae::Scene *scene) {
-    LoadLevelWithData(scene, Game::GetInstance().GetLevel0(), 0);
+void PlayableGameState::Enter() {
+    LoadLevel0();
 }
 
-void PlayableGameState::LoadLevel1(dae::Scene *scene) {
-    LoadLevelWithData(scene, Game::GetInstance().GetLevel1(), 1);
+void PlayableGameState::Exit() {
+    UnloadCurrentScene();
 }
 
-void PlayableGameState::LoadLevel2(dae::Scene *scene) {
-    LoadLevelWithData(scene, Game::GetInstance().GetLevel2(), 2);
+void PlayableGameState::OnLevelSkip() {
+    LoadLevel((m_CurrentLevelIndex + 1) % 3);
 }
 
-void PlayableGameState::LoadLevelWithData(dae::Scene *scene, const LevelData *data, uint32_t index) {
+void PlayableGameState::LoadLevel(uint32_t index) {
+    switch (index) {
+        case 0:
+            LoadLevel0();
+            break;
+        case 1:
+            LoadLevel1();
+            break;
+        case 2:
+            LoadLevel2();
+            break;
+        default:
+            LoadLevel0();
+            break;
+    }
+}
+
+void PlayableGameState::LoadLevel0() {
+    LoadLevelWithData(Game::GetInstance().GetLevel0(), 0);
+}
+
+void PlayableGameState::LoadLevel1() {
+    LoadLevelWithData(Game::GetInstance().GetLevel1(), 1);
+}
+
+void PlayableGameState::LoadLevel2() {
+    LoadLevelWithData(Game::GetInstance().GetLevel2(), 2);
+}
+
+void PlayableGameState::LoadLevelWithData(LevelData* data, uint32_t index) {
     UnloadCurrentScene();
 
+    m_Scene = dae::SceneManager::GetInstance().CreateScene();
     m_CurrentLevel = data;
     m_CurrentLevelIndex = index;
 
-    std::unique_ptr<dae::GameObject> gameobject{std::make_unique<dae::GameObject>()};
-    dae::Reference<LevelRenderer> renderer{gameobject->AddComponent<LevelRenderer>()};
+    if (m_Scene == nullptr || m_CurrentLevel == nullptr) {
+        return;
+    }
 
-    renderer->SetLevelData(data);
+    std::unique_ptr<dae::GameObject> levelObject{std::make_unique<dae::GameObject>()};
+    dae::Reference<LevelRenderer> renderer{levelObject->AddComponent<LevelRenderer>()};
 
-    gameobject->transform.SetWorldPosition(TiletoWorld(0, 0, data));
+    renderer->SetLevelData(m_CurrentLevel);
+    levelObject->transform.SetWorldPosition(TileToWorld(0, 0));
 
-    scene->Add(std::move(gameobject));
+    m_Scene->Add(std::move(levelObject));
 
-    OnLevelLoad(scene, data, index);
+    OnLevelLoad(m_CurrentLevel, m_CurrentLevelIndex);
 }
 
-void PlayableGameState::SpawnPlayer(dae::Scene *scene, const LevelData *data, const PlayerInputHandler *handler) {
-    std::unique_ptr<dae::GameObject> gameobject = std::make_unique<dae::GameObject>();
-    dae::Reference<TankRenderer> tank_renderer = gameobject->AddComponent<TankRenderer>();
-    dae::Reference<TankController> tank_controller = gameobject->AddComponent<TankController>();
+dae::GameObject* PlayableGameState::SpawnPlayer(const PlayerInputHandler* handler) {
+    if (m_Scene == nullptr || m_CurrentLevel == nullptr || handler == nullptr) {
+        return nullptr;
+    }
 
-    tank_controller->SetPlayerInput(handler);
+    const LevelSpawnPoint* spawnPoint = FindSpawnPoint(handler->GetPlayerIndex());
+    if (spawnPoint == nullptr) {
+        std::cout << "No spawn point found for player " << handler->GetPlayerIndex() << "." << std::endl;
+        return nullptr;
+    }
 
-    RespawnPlayer(gameobject.get(), data);
+    std::unique_ptr<dae::GameObject> playerObject = std::make_unique<dae::GameObject>();
+    dae::GameObject* player = playerObject.get();
 
-    scene->Add(std::move(gameobject));
+    playerObject->AddComponent<TankRenderer>();
+    dae::Reference<TankController> tankController = playerObject->AddComponent<TankController>();
+
+    playerObject->AddComponent<PlayerHealth>();
+    tankController->SetPlayerInput(handler);
+
+    player->transform.SetWorldPosition(TileToWorld(spawnPoint->tileX, spawnPoint->tileY));
+
+    m_Scene->Add(std::move(playerObject));
+    return player;
 }
 
-void PlayableGameState::SpawnEnemies(dae::Scene *scene, const LevelData *data) {
-
+void PlayableGameState::SpawnEnemies() {
+    if (m_Scene == nullptr || m_CurrentLevel == nullptr) {
+        return;
+    }
 }
 
-void PlayableGameState::RespawnPlayer(dae::GameObject *player, const LevelData *data) {
+void PlayableGameState::RespawnPlayer(dae::GameObject* player) {
+    if (player == nullptr || m_CurrentLevel == nullptr) {
+        return;
+    }
+
     dae::Reference<PlayerHealth> health = player->GetComponent<PlayerHealth>();
     if (health) {
-        health->lives--;
-
+        --health->lives;
         std::cout << "Player has lost a life and respawned." << std::endl;
     }
-    player->transform.SetWorldPosition(TiletoWorld(data->spawns[0].tileX, data->spawns[0].tileY, data));
+
+    player->transform.SetWorldPosition(TileToWorld(m_CurrentLevel->spawns[0].tileX, m_CurrentLevel->spawns[0].tileY));
 }
 
-glm::vec3 PlayableGameState::TiletoWorld(uint32_t x, uint32_t y, const LevelData* data) {
+glm::vec3 PlayableGameState::TileToWorld(uint32_t x, uint32_t y) const {
+    if (m_CurrentLevel == nullptr || m_CurrentLevel->height == 0) {
+        return glm::vec3{};
+    }
+
     const glm::vec2 windowSize{dae::Minigin::GetInstance().GetWindowSize()};
-    const float tileSize = (windowSize.y - 100.0f) / float(data->height);
-    const float levelResolution{data->height * tileSize};
+    const float tileSize = (windowSize.y - 100.0f) / float(m_CurrentLevel->height);
+    const float levelResolution{m_CurrentLevel->height * tileSize};
     const glm::vec3 levelOffset{windowSize.x / 2.0f - levelResolution / 2.0f, 0.0f, 100.0f};
 
-    return levelOffset + glm::vec3{ x * tileSize, y * tileSize, 0.0f};
+    return levelOffset + glm::vec3{x * tileSize, y * tileSize, 0.0f};
 }
 
-const LevelData * PlayableGameState::GetCurrentLevelData() const {
+dae::Scene* PlayableGameState::GetScene() const {
+    return m_Scene;
+}
+
+void PlayableGameState::UnloadCurrentScene() {
+    if (m_Scene != nullptr) {
+        dae::SceneManager::GetInstance().UnloadScene(m_Scene);
+        m_Scene = nullptr;
+    }
+
+    m_CurrentLevel = nullptr;
+}
+
+const LevelSpawnPoint* PlayableGameState::FindSpawnPoint(uint32_t playerIndex) const {
+    if (m_CurrentLevel == nullptr) {
+        return nullptr;
+    }
+
+    for (size_t index = 0; index < m_CurrentLevel->spawns.size(); ++index) {
+        const LevelSpawnPoint* spawnPoint = &m_CurrentLevel->spawns[index];
+        if (spawnPoint->playerIndex == playerIndex) {
+            return spawnPoint;
+        }
+    }
+
+    return nullptr;
+}
+
+LevelData* PlayableGameState::GetCurrentLevelData() const {
     return m_CurrentLevel;
 }
 
