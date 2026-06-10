@@ -40,10 +40,18 @@ if(WIN32 AND NOT EMSCRIPTEN)
           TankController.h
           ProjectileSystem.cpp
           ProjectileSystem.h
+          HighScoreTableDisplay.cpp
+          HighScoreTableDisplay.h
+          HighScoreBeatenDisplay.cpp
+          HighScoreBeatenDisplay.h
           PlayerHealth.cpp
           PlayerHealth.h
           ScoreKeeper.cpp
-          ScoreKeeper.h)
+          ScoreKeeper.h
+          GameEndState.cpp
+          GameEndState.h
+          Teleporter.cpp
+          Teleporter.h)
 endif()
 
 add_executable(game ${GAME_EXECUTABLE_TYPE}

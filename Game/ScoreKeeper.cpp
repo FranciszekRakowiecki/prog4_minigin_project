@@ -83,8 +83,16 @@ void ScoreKeeper::SaveHighScores() {
     }
 }
 
+bool ScoreKeeper::IsHighScore(uint32_t score) const {
+    return score > 0 && score > m_HighScores[HIGH_SCORE_COUNT - 1].score;
+}
+
+bool ScoreKeeper::IsPlayerHighScore(uint32_t playerIndex) const {
+    return IsHighScore(GetPlayerScore(playerIndex));
+}
+
 bool ScoreKeeper::SubmitHighScore(const std::string& name, uint32_t score) {
-    if (score == 0) {
+    if (!IsHighScore(score)) {
         return false;
     }
 

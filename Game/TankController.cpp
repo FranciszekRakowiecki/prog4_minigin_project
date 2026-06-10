@@ -39,6 +39,22 @@ void TankController::Update() {
         return;
     }
 
+    if (m_PlayerInput->IsLocked()) {
+        glm::vec2 move = m_PlayerInput->GetMove();
+
+        if (move.x == 0.0f && move.y == 0.0f) {
+            return;
+        }
+
+        move = glm::normalize(move);
+
+        float radians = std::atan2(-move.y, move.x);
+
+        GetParent()->transform.SetRotation(radians);
+
+        return;
+    }
+
     const TilePosition direction = GetRequestedDirection();
     if (direction.x != 0 || direction.y != 0) {
         SetFacingDirection(direction);

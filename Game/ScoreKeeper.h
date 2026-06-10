@@ -26,6 +26,8 @@ public:
 
     void LoadHighScores();
     void SaveHighScores();
+    bool IsHighScore(uint32_t score) const;
+    bool IsPlayerHighScore(uint32_t playerIndex) const;
     bool SubmitHighScore(const std::string& name, uint32_t score);
     bool SubmitPlayerHighScore(uint32_t playerIndex, const std::string& name);
     const std::array<HighScoreEntry, HIGH_SCORE_COUNT>& GetHighScores() const;

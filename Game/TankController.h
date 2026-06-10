@@ -58,6 +58,8 @@ private:
     glm::vec3 m_TargetPosition{};
     float m_MoveProgress{1.0f};
 
+    float m_LastShot{};
+
     glm::vec3 TileCenterToWorld(const TilePosition& tile) const;
     bool CanMoveTo(const TilePosition& tile) const;
     TilePosition GetRequestedDirection() const;

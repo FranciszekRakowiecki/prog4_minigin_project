@@ -154,11 +154,11 @@ void PlayableGameState::SpawnEnemies() {
 
         if (enemySpawn.type == EnemyType::Recognizer) {
             tankRenderer->SetTankColor({1.0f, 0.85f, 0.1f, 1.0f});
-            tankController->SetMoveSpeedTilesPerSecond(7.0f);
+            tankController->SetMoveSpeedTilesPerSecond(6.0f);
         }
         else {
             tankRenderer->SetTankColor({0.1f, 0.35f, 1.0f, 1.0f});
-            tankController->SetMoveSpeedTilesPerSecond(5.0f);
+            tankController->SetMoveSpeedTilesPerSecond(4.0f);
         }
 
         TankController::PlayerLevelData data {

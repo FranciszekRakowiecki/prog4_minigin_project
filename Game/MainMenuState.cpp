@@ -13,6 +13,7 @@
 #include "SceneManager.h"
 #include "Button.h"
 #include "Game.h"
+#include "HighScoreTableDisplay.h"
 #include "Minigin.h"
 
 namespace dae {
@@ -78,6 +79,18 @@ void MainMenuState::CreateInfoTexts() {
         m_PlayerText1 = gameobject->AddComponent<TextRenderer>();
 
         gameobject->transform.SetWorldPosition({0.0f, Game::GetInstance().FONT_SIZE, 0.0f});
+
+        m_Scene->Add(std::move(gameobject));
+    }
+
+    {
+        std::unique_ptr<dae::GameObject> gameobject = std::make_unique<dae::GameObject>();
+        gameobject->AddComponent<TextRenderer>();
+        dae::Reference<HighScoreTableDisplay> display = gameobject->AddComponent<HighScoreTableDisplay>();
+
+        display->SetShowPlayerScores(false);
+
+        gameobject->transform.SetWorldPosition(windowSize.x - 300.0f, 60.0f);
 
         m_Scene->Add(std::move(gameobject));
     }
@@ -196,6 +209,7 @@ void MainMenuState::Enter() {
 
     PlayerInputManager::GetInstance().SetPlayerJoinCallback([&](PlayerInputHandler& handler) { this->PlayerJoinCallback(handler); });
 
+    CreateButton("Debug", []() { Game::GetInstance().LoadGameEnd(); });
     CreateButton("SinglePlayer", []() { Game::GetInstance().LoadSinglePlayer(); });
     CreateButton("Coop", []() { Game::GetInstance().LoadCoopPlayer(); });
     CreateButton("Versus", []() { Game::GetInstance().LoadVersusPlayer(); });
@@ -204,6 +218,8 @@ void MainMenuState::Enter() {
     UpdateButtonLocations();
 
     CreateInfoTexts();
+
+    m_LastInputTime = dae::GameTime::GetInstance().GetTime() + 1.0f;
 }
 
 void MainMenuState::Exit() {

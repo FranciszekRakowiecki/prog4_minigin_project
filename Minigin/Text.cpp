@@ -40,7 +40,12 @@ void dae::Text::UpdateTexture() {
     {
         SDL_Surface* surf;
         if (!m_text.empty()) {
-            surf = TTF_RenderText_Blended(m_font->GetFont(), m_text.c_str(), m_text.length(), m_color);
+            if (m_text.find('\n') != std::string::npos) {
+                surf = TTF_RenderText_Blended_Wrapped(m_font->GetFont(), m_text.c_str(), m_text.length(), m_color, 0);
+            }
+            else {
+                surf = TTF_RenderText_Blended(m_font->GetFont(), m_text.c_str(), m_text.length(), m_color);
+            }
             if (surf == nullptr)
             {
                 std::string message = std::string("Render text failed: ") + SDL_GetError();
