@@ -7,9 +7,12 @@
 #include <algorithm>
 #include <cmath>
 
+#include "Game.h"
 #include "GameObject.h"
 #include "GameTime.h"
 #include "PlayerInputHandler.h"
+#include "PlayableGameState.h"
+#include "ProjectileSystem.h"
 
 int TankController::GetFlags() {
     return COMPONENT_HAS_UPDATE;
@@ -51,6 +54,12 @@ void TankController::Update() {
         float radians = std::atan2(-move.y, move.x);
 
         GetParent()->transform.SetRotation(radians);
+
+        if (m_PlayerInput->IsShooting() && m_LastShot + m_ShootDelay < dae::GameTime::GetInstance().GetTime()) {
+            PlayableGameState* state = (PlayableGameState*)Game::GetInstance().GetGameState();
+            state->GetProjectileSystem()->FirePlayerProjectile(GetParent(), GetParent()->transform.GetWorldPosition() + glm::vec3(move.x, -move.y, 0.0f) * 20.0f, { move.x, -move.y });
+            m_LastShot = dae::GameTime::GetInstance().GetTime();
+        }
 
         return;
     }
@@ -116,6 +125,10 @@ uint16_t TankController::GetCurrentTileX() const {
 
 uint16_t TankController::GetCurrentTileY() const {
     return uint16_t(std::max(0, m_CurrentTile.y));
+}
+
+void TankController::SetShootDelay(float delay) {
+    m_ShootDelay = std::max(0.0f, delay);
 }
 
 glm::vec3 TankController::TileCenterToWorld(const TilePosition& tile) const {

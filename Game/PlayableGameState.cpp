@@ -4,9 +4,11 @@
 
 #include "PlayableGameState.h"
 
+#include <algorithm>
 #include <cstddef>
 #include <iostream>
 #include <memory>
+#include <random>
 
 #include "Game.h"
 #include "EnemyTankAI.h"
@@ -15,11 +17,15 @@
 #include "LevelRenderer.h"
 #include "Minigin.h"
 #include "PlayerHealth.h"
+#include "PlayerHealthDisplay.h"
+#include "PlayerScoreDisplay.h"
 #include "ProjectileSystem.h"
 #include "Scene.h"
 #include "SceneManager.h"
 #include "TankController.h"
 #include "TankRenderer.h"
+#include "Teleporter.h"
+#include "TextRenderer.h"
 #include "glm/vec2.hpp"
 
 void PlayableGameState::Enter() {
@@ -28,6 +34,10 @@ void PlayableGameState::Enter() {
 
 void PlayableGameState::Exit() {
     UnloadCurrentScene();
+}
+
+void PlayableGameState::Update() {
+    CheckLevelCompletion();
 }
 
 void PlayableGameState::OnLevelSkip() {
@@ -66,9 +76,12 @@ void PlayableGameState::LoadLevel2() {
 void PlayableGameState::LoadLevelWithData(LevelData* data, uint32_t index) {
     UnloadCurrentScene();
 
+    Game::GetInstance().PlaySFX(GameSFX::ENTER_LEVEL);
+
     m_Scene = dae::SceneManager::GetInstance().CreateScene();
     m_CurrentLevel = data;
     m_CurrentLevelIndex = index;
+    m_IsCompletingLevel = false;
 
     if (m_Scene == nullptr || m_CurrentLevel == nullptr) {
         return;
@@ -92,6 +105,11 @@ void PlayableGameState::LoadLevelWithData(LevelData* data, uint32_t index) {
 
     m_Scene->Add(std::move(projectileObject));
 
+    std::unique_ptr<dae::GameObject> teleporterObject{std::make_unique<dae::GameObject>()};
+    dae::Reference<Teleporter> teleporter = teleporterObject->AddComponent<Teleporter>();
+    teleporter->SetLevelData(m_CurrentLevel, levelOrigin, tileSize);
+    m_Scene->Add(std::move(teleporterObject));
+
     OnLevelLoad(m_CurrentLevel, m_CurrentLevelIndex);
 }
 
@@ -112,7 +130,7 @@ dae::GameObject* PlayableGameState::SpawnPlayer(const PlayerInputHandler* handle
     playerObject->AddComponent<TankRenderer>();
     dae::Reference<TankController> tankController = playerObject->AddComponent<TankController>();
 
-    playerObject->AddComponent<PlayerHealth>();
+    dae::Reference<PlayerHealth> healthComponent = playerObject->AddComponent<PlayerHealth>();
     tankController->SetPlayerInput(handler);
 
     const glm::vec3 levelOrigin = TileToWorld(0, 0);
@@ -129,8 +147,37 @@ dae::GameObject* PlayableGameState::SpawnPlayer(const PlayerInputHandler* handle
 
     m_Scene->Add(std::move(playerObject));
     m_PlayerObjects.emplace_back(player);
-    if (m_ProjectileSystem != nullptr) {
-        m_ProjectileSystem->RegisterPlayer(player);
+
+    {
+        std::unique_ptr<dae::GameObject> gameobject = std::make_unique<dae::GameObject>();
+        dae::Reference<TextRenderer> text = gameobject->AddComponent<TextRenderer>();
+        dae::Reference<PlayerHealthDisplay> healthDisplay = gameobject->AddComponent<PlayerHealthDisplay>();
+        healthDisplay->SetPlayerHealth(healthComponent);
+        if (handler->GetPlayerIndex() == 0)
+            healthDisplay->SetPrefix("P1 Lives: ");
+        else {
+            healthDisplay->SetPrefix("P2 Lives: ");
+            gameobject->transform.SetWorldPosition(0.0f, 50.0f);
+        }
+
+        m_Scene->Add(std::move(gameobject));
+    }
+
+    {
+        std::unique_ptr<dae::GameObject> gameobject = std::make_unique<dae::GameObject>();
+        gameobject->AddComponent<TextRenderer>();
+        dae::Reference<PlayerScoreDisplay> scoreDisplay = gameobject->AddComponent<PlayerScoreDisplay>();
+        scoreDisplay->SetPlayerIndex(handler->GetPlayerIndex());
+        if (handler->GetPlayerIndex() == 0) {
+            scoreDisplay->SetPrefix("P1 Score: ");
+            gameobject->transform.SetWorldPosition(0.0f, 25.0f);
+        }
+        else {
+            scoreDisplay->SetPrefix("P2 Score: ");
+            gameobject->transform.SetWorldPosition(0.0f, 75.0f);
+        }
+
+        m_Scene->Add(std::move(gameobject));
     }
 
     return player;
@@ -173,45 +220,14 @@ void PlayableGameState::SpawnEnemies() {
 
         enemyAI->SetEnemyType(enemySpawn.type);
         enemyAI->SetLevelData(m_CurrentLevel, levelOrigin, tileSize);
-        enemyAI->SetTargets(m_PlayerObjects);
 
         m_Scene->Add(std::move(enemyObject));
         m_EnemyObjects.emplace_back(enemy);
-        if (m_ProjectileSystem != nullptr) {
-            m_ProjectileSystem->RegisterEnemy(enemy);
-        }
     }
 }
 
 void PlayableGameState::RespawnPlayer(dae::GameObject* player) {
-    if (player == nullptr || m_CurrentLevel == nullptr) {
-        return;
-    }
-
-    dae::Reference<PlayerHealth> health = player->GetComponent<PlayerHealth>();
-    if (health) {
-        --health->lives;
-        std::cout << "Player has lost a life and respawned." << std::endl;
-    }
-
-    const LevelSpawnPoint& spawn = m_CurrentLevel->spawns[0];
-    const glm::vec3 levelOrigin = TileToWorld(0, 0);
-    const float tileSize = TileToWorld(1, 0).x - levelOrigin.x;
-
-    dae::Reference<TankController> tankController = player->GetComponent<TankController>();
-    if (tankController) {
-        TankController::PlayerLevelData data {
-            m_CurrentLevel,
-            levelOrigin,
-            tileSize,
-            spawn.tileX,
-            spawn.tileY
-        };
-        tankController->SetLevelData(data);
-        return;
-    }
-
-    player->transform.SetWorldPosition(TileToWorld(spawn.tileX, spawn.tileY) + glm::vec3{tileSize * 0.5f, tileSize * 0.5f, 0.0f});
+    RespawnPlayerAtRandomSpawn(player, true);
 }
 
 glm::vec3 PlayableGameState::TileToWorld(uint32_t x, uint32_t y) const {
@@ -235,10 +251,47 @@ ProjectileSystem* PlayableGameState::GetProjectileSystem() const {
     return m_ProjectileSystem;
 }
 
+void PlayableGameState::RespawnPlayerAtRandomSpawn(dae::GameObject* player, bool loseLife) {
+    if (player == nullptr || m_CurrentLevel == nullptr || m_CurrentLevel->spawns.empty()) {
+        return;
+    }
+
+    dae::Reference<PlayerHealth> health = player->GetComponent<PlayerHealth>();
+    if (loseLife && health) {
+        --health->lives;
+        if (health->lives <= 0) {
+            player->Destroy();
+            return;
+        }
+    }
+
+    std::uniform_int_distribution<std::size_t> distribution{0, m_CurrentLevel->spawns.size() - 1};
+    const LevelSpawnPoint& spawn = m_CurrentLevel->spawns[distribution(m_RandomGenerator)];
+    const glm::vec3 levelOrigin = TileToWorld(0, 0);
+    const float tileSize = TileToWorld(1, 0).x - levelOrigin.x;
+
+    dae::Reference<TankController> tankController = player->GetComponent<TankController>();
+    if (tankController) {
+        TankController::PlayerLevelData data {
+            m_CurrentLevel,
+            levelOrigin,
+            tileSize,
+            spawn.tileX,
+            spawn.tileY
+        };
+        tankController->SetLevelData(data);
+        tankController->SetFacingDirection(spawn.direction);
+        return;
+    }
+
+    player->transform.SetWorldPosition(TileToWorld(spawn.tileX, spawn.tileY) + glm::vec3{tileSize * 0.5f, tileSize * 0.5f, 0.0f});
+}
+
 void PlayableGameState::UnloadCurrentScene() {
     m_PlayerObjects.clear();
     m_EnemyObjects.clear();
     m_ProjectileSystem = nullptr;
+    m_IsCompletingLevel = false;
 
     if (m_Scene != nullptr) {
         dae::SceneManager::GetInstance().UnloadScene(m_Scene);
@@ -269,4 +322,75 @@ LevelData* PlayableGameState::GetCurrentLevelData() const {
 
 uint32_t PlayableGameState::GetCurrentLevelIndex() const {
     return m_CurrentLevelIndex;
+}
+
+const std::vector<dae::GameObject*>& PlayableGameState::GetPlayerObjects() const {
+    return m_PlayerObjects;
+}
+
+const std::vector<dae::GameObject*>& PlayableGameState::GetEnemyObjects() const {
+    return m_EnemyObjects;
+}
+
+void PlayableGameState::CheckLevelCompletion() {
+    if (m_IsCompletingLevel || m_CurrentLevel == nullptr) {
+        return;
+    }
+
+    RemoveDestroyedObjects(m_PlayerObjects);
+    RemoveDestroyedObjects(m_EnemyObjects);
+
+    if (AreAllPlayersDead()) {
+        EndGame();
+        return;
+    }
+
+    if (AreAllEnemiesDestroyed()) {
+        CompleteLevel();
+    }
+}
+
+void PlayableGameState::RemoveDestroyedObjects(std::vector<dae::GameObject*>& objects) {
+    std::erase_if(objects, [](dae::GameObject* object) {
+        return object == nullptr || object->IsDestroyed();
+    });
+}
+
+bool PlayableGameState::AreAllPlayersDead() const {
+    if (m_PlayerObjects.empty()) {
+        return true;
+    }
+
+    for (dae::GameObject* player : m_PlayerObjects) {
+        if (player == nullptr || player->IsDestroyed()) {
+            continue;
+        }
+
+        dae::Reference<PlayerHealth> health = player->GetComponent<PlayerHealth>();
+        if (!health || health->lives > 0) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+bool PlayableGameState::AreAllEnemiesDestroyed() const {
+    return m_EnemyObjects.empty();
+}
+
+void PlayableGameState::CompleteLevel() {
+    m_IsCompletingLevel = true;
+
+    if (m_CurrentLevelIndex >= 2) {
+        EndGame();
+        return;
+    }
+
+    LoadLevel(m_CurrentLevelIndex + 1);
+}
+
+void PlayableGameState::EndGame() {
+    m_IsCompletingLevel = true;
+    Game::GetInstance().LoadGameEnd();
 }

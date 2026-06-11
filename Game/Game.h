@@ -19,6 +19,15 @@
 #include "LevelLoader.h"
 #include "ScoreKeeper.h"
 
+enum class GameSFX : uint8_t {
+    PLAYER_SHOOT,
+    PLAYER_DEATH,
+    ENTER_LEVEL,
+    ENEMY_SHOOT,
+    ENEMY_DEATH,
+    BUTTON_CLICK
+};
+
 class Game final : public dae::Singleton<Game>, public dae::EngineHook {
 public:
     const int FONT_SIZE{ 30 };
@@ -47,9 +56,15 @@ public:
     std::shared_ptr<dae::Font> GetGameFont() const;
     ScoreKeeper& GetScoreKeeper();
 
+    GameState* GetGameState() const;
+
+    void PlaySFX(GameSFX sfx);
+
 private:
     void RequestStateChange(GameState* state);
     void ApplyPendingStateChange();
+
+    void LoadAudio();
 
     std::unique_ptr<NullGameState> m_NullGameState;
     std::unique_ptr<MainMenuState> m_MainMenuState;
@@ -70,6 +85,13 @@ private:
 
     dae::InputKey* m_SkipLevelKey;
     dae::InputKey* m_MuteKey;
+
+    SoundId m_ButtonSelectSFX{0};
+    SoundId m_PlayerDeathSFX{0};
+    SoundId m_EnemyDeathSFX{0};
+    SoundId m_EnterLevelSFX{0};
+    SoundId m_PlayerShootSFX{0};
+    SoundId m_EnemyShootSFX{0};
 
     bool m_IsGameMuted{false};
 };

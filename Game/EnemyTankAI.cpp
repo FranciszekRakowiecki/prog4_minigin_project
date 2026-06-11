@@ -4,9 +4,14 @@
 
 #include "EnemyTankAI.h"
 
+#include <algorithm>
 #include <cstddef>
 
+#include "Game.h"
 #include "GameObject.h"
+#include "GameTime.h"
+#include "PlayableGameState.h"
+#include "ProjectileSystem.h"
 #include "TankController.h"
 
 int EnemyTankAI::GetFlags() {
@@ -14,16 +19,27 @@ int EnemyTankAI::GetFlags() {
 }
 
 void EnemyTankAI::Start() {
-    dae::Reference<TankController> controller = GetParent()->GetComponent<TankController>();
-    m_TankController = controller.get();
+    m_TankController = GetParent()->GetComponent<TankController>();
+
+    m_LastShot = dae::GameTime::GetInstance().GetTime();
 }
 
 void EnemyTankAI::Update() {
-    if (m_LevelData == nullptr || m_TankController == nullptr || m_TankController->IsMoving()) {
+    if (m_LevelData == nullptr || !m_TankController || m_TankController->IsMoving()) {
         return;
     }
 
     if (TryHandleVisiblePlayer()) {
+        if (m_EnemyType == EnemyType::BlueTank && m_LastShot + m_ShootDelay < dae::GameTime::GetInstance().GetTime()) {
+
+            PlayableGameState* playable = GetPlayableGameState();
+            if (playable != nullptr && playable->GetProjectileSystem() != nullptr) {
+                playable->GetProjectileSystem()->FireEnemyProjectile(GetParent(), GetParent()->transform.GetWorldPosition(), m_TankController->GetFacingDirection());
+            }
+
+            m_LastShot = dae::GameTime::GetInstance().GetTime();
+        }
+
         return;
     }
 
@@ -40,14 +56,32 @@ void EnemyTankAI::SetLevelData(const LevelData* levelData, const glm::vec3& leve
     m_TileSize = tileSize;
 }
 
-void EnemyTankAI::SetTargets(const std::vector<dae::GameObject*>& targets) {
-    m_Targets = targets;
+void EnemyTankAI::SetHealth(int health) {
+    m_Health = health;
+}
+
+int EnemyTankAI::GetHealth() const {
+    return m_Health;
+}
+
+void EnemyTankAI::TakeDamage(int damage) {
+    m_Health -= damage;
+    if (m_Health <= 0) {
+        GetParent()->Destroy();
+    }
+}
+
+void EnemyTankAI::SetShootDelay(float delay) {
+    m_ShootDelay = std::max(0.0f, delay);
+}
+
+int EnemyTankAI::GetScoreValue() const {
+    return m_EnemyType == EnemyType::BlueTank ? 100 : 250;
 }
 
 void EnemyTankAI::PickMove() {
     const std::vector<Direction> options = GetPatrolOptions();
     if (options.empty()) {
-
         return;
     }
 
@@ -56,7 +90,16 @@ void EnemyTankAI::PickMove() {
 }
 
 bool EnemyTankAI::TryHandleVisiblePlayer() {
-    for (dae::GameObject* target : m_Targets) {
+    PlayableGameState* playable = GetPlayableGameState();
+    if (playable == nullptr) {
+        return false;
+    }
+
+    for (dae::GameObject* target : playable->GetPlayerObjects()) {
+        if (target == nullptr || target->IsDestroyed()) {
+            continue;
+        }
+
         uint16_t targetX{};
         uint16_t targetY{};
         if (TryGetTargetTile(target, targetX, targetY)
@@ -67,6 +110,7 @@ bool EnemyTankAI::TryHandleVisiblePlayer() {
 
         Direction directionToTarget{};
         if (!IsTargetVisible(target, directionToTarget)) {
+            m_LastShot = dae::GameTime::GetInstance().GetTime();
             continue;
         }
 
@@ -84,7 +128,7 @@ bool EnemyTankAI::TryHandleVisiblePlayer() {
 }
 
 bool EnemyTankAI::IsTargetVisible(dae::GameObject* target, Direction& directionToTarget) const {
-    if (target == nullptr || m_TankController == nullptr) {
+    if (target == nullptr || !m_TankController) {
         return false;
     }
 
@@ -155,7 +199,7 @@ bool EnemyTankAI::TryGetTargetTile(dae::GameObject* target, uint16_t& tileX, uin
 
 std::vector<Direction> EnemyTankAI::GetPatrolOptions() const {
     std::vector<Direction> options{};
-    if (m_TankController == nullptr) {
+    if (!m_TankController) {
         return options;
     }
 
@@ -178,6 +222,10 @@ std::vector<Direction> EnemyTankAI::GetPatrolOptions() const {
     }
 
     return options;
+}
+
+PlayableGameState* EnemyTankAI::GetPlayableGameState() const {
+    return static_cast<PlayableGameState*>(Game::GetInstance().GetGameState());
 }
 
 Direction EnemyTankAI::TurnLeft(Direction direction) {

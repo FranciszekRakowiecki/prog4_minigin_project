@@ -4,6 +4,18 @@
 
 #include "CoopPlayerState.h"
 
-void CoopPlayerState::Enter() {
-    GameState::Enter();
+#include <vector>
+
+#include "PlayerInputManager.h"
+
+class PlayerInputHandler;
+
+void CoopPlayerState::OnLevelLoad(LevelData*, uint32_t) {
+    const std::vector<PlayerInputHandler>& players = PlayerInputManager::GetInstance().GetPlayers();
+    if (!players.empty()) {
+        SpawnPlayer(&players[0]);
+        SpawnPlayer(&players[1]);
+    }
+
+    SpawnEnemies();
 }

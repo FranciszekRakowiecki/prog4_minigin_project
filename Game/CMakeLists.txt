@@ -44,6 +44,10 @@ if(WIN32 AND NOT EMSCRIPTEN)
           HighScoreTableDisplay.h
           HighScoreBeatenDisplay.cpp
           HighScoreBeatenDisplay.h
+          PlayerHealthDisplay.cpp
+          PlayerHealthDisplay.h
+          PlayerScoreDisplay.cpp
+          PlayerScoreDisplay.h
           PlayerHealth.cpp
           PlayerHealth.h
           ScoreKeeper.cpp
@@ -92,6 +96,14 @@ elseif(WIN32)
   if(MINIGIN_STEAMWORKS_FOUND AND MINIGIN_STEAMWORKS_RUNTIME_DLL)
     add_custom_command(TARGET game POST_BUILD
       COMMAND "${CMAKE_COMMAND}" -E copy_if_different "${MINIGIN_STEAMWORKS_RUNTIME_DLL}" "$<TARGET_FILE_DIR:game>")
+  endif()
+
+  if(MINIGIN_ENABLE_VLD AND MINIGIN_VLD_DLL_DIR AND MINIGIN_VLD_DLL_NAME)
+    add_custom_command(TARGET game POST_BUILD
+      COMMAND "${CMAKE_COMMAND}" -E copy_if_different "${MINIGIN_VLD_DLL_DIR}/${MINIGIN_VLD_DLL_NAME}" "$<TARGET_FILE_DIR:game>"
+      COMMAND "${CMAKE_COMMAND}" -E copy_if_different "${MINIGIN_VLD_DLL_DIR}/dbghelp.dll" "$<TARGET_FILE_DIR:game>"
+      COMMENT "Copying Visual Leak Detector runtime DLLs"
+    )
   endif()
 elseif(APPLE)
   set_target_properties(game PROPERTIES

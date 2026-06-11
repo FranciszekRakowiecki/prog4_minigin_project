@@ -19,6 +19,8 @@ namespace dae {
     class GameObject;
 }
 
+class PlayableGameState;
+
 class EnemyTankAI : public dae::Component {
 public:
     int GetFlags() override;
@@ -27,15 +29,21 @@ public:
 
     void SetEnemyType(EnemyType type);
     void SetLevelData(const LevelData* levelData, const glm::vec3& levelOrigin, float tileSize);
-    void SetTargets(const std::vector<dae::GameObject*>& targets);
+    void SetHealth(int health);
+    int GetHealth() const;
+    void TakeDamage(int damage = 1);
+    void SetShootDelay(float delay);
+    int GetScoreValue() const;
 
 private:
     const LevelData* m_LevelData{nullptr};
-    TankController* m_TankController{nullptr};
-    std::vector<dae::GameObject*> m_Targets{};
+    dae::Reference<TankController> m_TankController{};
     EnemyType m_EnemyType{EnemyType::BlueTank};
     glm::vec3 m_LevelOrigin{};
     float m_TileSize{16.0f};
+    int m_Health{3};
+    float m_LastShot{0.0f};
+    float m_ShootDelay{0.75f};
     std::default_random_engine m_RandomGenerator{};
 
     void PickMove();
@@ -44,6 +52,7 @@ private:
     bool HasClearLine(uint16_t fromX, uint16_t fromY, uint16_t toX, uint16_t toY) const;
     bool TryGetTargetTile(dae::GameObject* target, uint16_t& tileX, uint16_t& tileY) const;
     std::vector<Direction> GetPatrolOptions() const;
+    PlayableGameState* GetPlayableGameState() const;
     static Direction TurnLeft(Direction direction);
     static Direction TurnRight(Direction direction);
     static Direction Flip(Direction direction);

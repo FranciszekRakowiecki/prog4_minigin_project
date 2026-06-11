@@ -18,8 +18,6 @@
 #include "Renderer.h"
 #include "ResourceManager.h"
 #include "ServiceLocator.h"
-#include "SoundLibrary.h"
-#include "SoundSystemSDL.h"
 
 dae::Minigin* dae::Minigin::INSTANCE{nullptr};
 
@@ -95,8 +93,6 @@ dae::Minigin::Minigin(const std::filesystem::path& dataPath)
 	ResourceManager::GetInstance().Init(dataPath);
 
 	ServiceLocator::GetInstance().Init();
-
-	SoundLibrary::GetInstance().Load();
 }
 
 dae::Minigin::~Minigin()

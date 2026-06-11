@@ -57,6 +57,16 @@ void Game::ApplyPendingStateChange() {
     ChangeState(nextState);
 }
 
+void Game::LoadAudio() {
+    SoundSystem& sound = ServiceLocator::GetInstance().getSoundSystem();
+    m_ButtonSelectSFX = sound.registerSound(MINIGIN_DATA_PATH + "buttonSelect.wav");
+    m_EnemyShootSFX = sound.registerSound(MINIGIN_DATA_PATH + "enemyShoot.wav");
+    m_PlayerShootSFX = sound.registerSound(MINIGIN_DATA_PATH + "playerShoot.wav");
+    m_EnemyDeathSFX = sound.registerSound(MINIGIN_DATA_PATH + "enemyDeath.wav");
+    m_PlayerDeathSFX = sound.registerSound(MINIGIN_DATA_PATH + "playerDeath.wav");
+    m_EnterLevelSFX = sound.registerSound(MINIGIN_DATA_PATH + "enterLevel.wav");
+}
+
 void Game::Start() {
     ServiceLocator::GetInstance().setSoundSystem(std::make_unique<SoundSystemSDL>());
 
@@ -64,6 +74,8 @@ void Game::Start() {
     m_ScoreKeeper.LoadHighScores();
 
     PlayerInputManager::GetInstance().Initialize();
+
+    LoadAudio();
 
     // auto font = dae::ResourceManager::GetInstance().LoadFont("Lingua.otf", 36);
     // auto fps = std::make_unique<dae::TextObject>("FPS: ", font);
@@ -77,7 +89,6 @@ void Game::Start() {
     m_Level1 = std::make_unique<LevelData>(std::move(LevelLoader::LoadFromFile("TronLevel2.tlvl")));
     m_Level2 = std::make_unique<LevelData>(std::move(LevelLoader::LoadFromFile("TronLevel3.tlvl")));
 
-    m_ScoreKeeper.AddPlayerScore(0, 300);
     LoadMainMenu();
 }
 
@@ -100,6 +111,7 @@ void Game::Update() {
         }
         else {
             ServiceLocator::GetInstance().setSoundSystem(std::make_unique<SoundSystemSDL>());
+            LoadAudio();
         }
     }
 
@@ -162,4 +174,32 @@ std::shared_ptr<dae::Font> Game::GetGameFont() const {
 
 ScoreKeeper& Game::GetScoreKeeper() {
     return m_ScoreKeeper;
+}
+
+GameState * Game::GetGameState() const {
+    return m_GameState;
+}
+
+void Game::PlaySFX(GameSFX sfx) {
+    SoundSystem& sound = ServiceLocator::GetInstance().getSoundSystem();
+    switch (sfx) {
+        case GameSFX::PLAYER_SHOOT:
+            sound.playSound(m_PlayerShootSFX, 0.2f);
+            break;
+        case GameSFX::PLAYER_DEATH:
+            sound.playSound(m_PlayerDeathSFX, 0.4f);
+            break;
+        case GameSFX::ENTER_LEVEL:
+            sound.playSound(m_EnterLevelSFX, 0.5f);
+            break;
+        case GameSFX::ENEMY_SHOOT:
+            sound.playSound(m_EnemyShootSFX, 0.2f);
+            break;
+        case GameSFX::ENEMY_DEATH:
+            sound.playSound(m_EnemyDeathSFX, 0.4f);
+            break;
+        case GameSFX::BUTTON_CLICK:
+            sound.playSound(m_ButtonSelectSFX, 0.2f);
+            break;
+    }
 }

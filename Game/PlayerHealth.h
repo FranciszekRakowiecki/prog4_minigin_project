@@ -9,7 +9,7 @@
 
 class PlayerHealth : public dae::Component {
 public:
-    int lives{4};
+    int lives{3};
 };
 
 

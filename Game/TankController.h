@@ -37,6 +37,7 @@ public:
     Direction GetFacingDirection() const;
     uint16_t GetCurrentTileX() const;
     uint16_t GetCurrentTileY() const;
+    void SetShootDelay(float delay);
 
 private:
     const PlayerInputHandler* m_PlayerInput{nullptr};
@@ -58,6 +59,7 @@ private:
     glm::vec3 m_TargetPosition{};
     float m_MoveProgress{1.0f};
 
+    float m_ShootDelay{0.5f};
     float m_LastShot{};
 
     glm::vec3 TileCenterToWorld(const TilePosition& tile) const;

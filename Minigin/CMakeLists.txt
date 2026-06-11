@@ -41,7 +41,8 @@ if(NOT SDL3_FOUND)
       DOWNLOAD_DIR ${CMAKE_BINARY_DIR}/downloads
     )
     FetchContent_MakeAvailable(SDL3)
-    list(PREPEND CMAKE_PREFIX_PATH "${sdl3_SOURCE_DIR}")
+    set(SDL3_DIR "${sdl3_SOURCE_DIR}/cmake")
+    list(PREPEND CMAKE_PREFIX_PATH "${sdl3_SOURCE_DIR}" "${SDL3_DIR}")
     find_package(SDL3 CONFIG REQUIRED)
   else()
     FetchContent_Declare(
@@ -74,7 +75,8 @@ if(NOT SDL3_ttf_FOUND)
       DOWNLOAD_DIR ${CMAKE_BINARY_DIR}/downloads
     )
     FetchContent_MakeAvailable(SDL3_ttf)
-    list(PREPEND CMAKE_PREFIX_PATH "${sdl3_ttf_SOURCE_DIR}")
+    set(SDL3_ttf_DIR "${sdl3_ttf_SOURCE_DIR}/cmake")
+    list(PREPEND CMAKE_PREFIX_PATH "${sdl3_ttf_SOURCE_DIR}" "${SDL3_ttf_DIR}")
     find_package(SDL3_ttf CONFIG REQUIRED)
   else()
     FetchContent_Declare(
@@ -105,9 +107,51 @@ else()
   message(FATAL_ERROR "SDL3_ttf target was not found.")
 endif()
 
-if (WIN32)
-  # Add VLD (Visual Leak Detector) for memory leak detection on Windows
-  find_package(VLD CONFIG)
+option(MINIGIN_ENABLE_VLD "Enable Visual Leak Detector when available" OFF)
+
+if (WIN32 AND MINIGIN_ENABLE_VLD)
+  # Add VLD (Visual Leak Detector) for memory leak detection on Windows.
+  # The normal installer does not ship a VLDConfig.cmake, so find the classic
+  # include/lib/bin layout directly instead of requiring VLD_DIR.
+  set(VLD_ROOT "" CACHE PATH "Visual Leak Detector install directory")
+  if(NOT VLD_ROOT AND EXISTS "C:/Program Files (x86)/Visual Leak Detector")
+    set(VLD_ROOT "C:/Program Files (x86)/Visual Leak Detector" CACHE PATH "Visual Leak Detector install directory" FORCE)
+  endif()
+
+  if(CMAKE_SIZEOF_VOID_P EQUAL 8)
+    set(MINIGIN_VLD_ARCH "Win64")
+  else()
+    set(MINIGIN_VLD_ARCH "Win32")
+  endif()
+
+  find_path(VLD_INCLUDE_DIR
+    NAMES vld.h
+    PATHS "${VLD_ROOT}/include"
+    NO_DEFAULT_PATH
+  )
+  find_library(VLD_LIBRARIES
+    NAMES vld
+    PATHS "${VLD_ROOT}/lib/${MINIGIN_VLD_ARCH}"
+    NO_DEFAULT_PATH
+  )
+
+  if(VLD_INCLUDE_DIR AND VLD_LIBRARIES)
+    set(MINIGIN_VLD_DLL_DIR "${VLD_ROOT}/bin/${MINIGIN_VLD_ARCH}" CACHE PATH "Visual Leak Detector DLL directory")
+    if(CMAKE_SIZEOF_VOID_P EQUAL 8)
+      set(MINIGIN_VLD_DLL_NAME "vld_x64.dll" CACHE STRING "Visual Leak Detector DLL name")
+    else()
+      set(MINIGIN_VLD_DLL_NAME "vld_x86.dll" CACHE STRING "Visual Leak Detector DLL name")
+    endif()
+    message(STATUS "Visual Leak Detector found: ${VLD_ROOT}")
+  else()
+    message(STATUS "Visual Leak Detector not found. Set VLD_ROOT to enable it.")
+    unset(VLD_INCLUDE_DIR CACHE)
+    unset(VLD_LIBRARIES CACHE)
+  endif()
+endif()
+
+if(WIN32 AND NOT MINIGIN_ENABLE_VLD)
+  message(STATUS "Visual Leak Detector disabled. Set MINIGIN_ENABLE_VLD=ON to enable it.")
 endif()
 
 ## Add steam if available
@@ -161,7 +205,6 @@ target_include_directories(engine PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}
         ${imgui_src_SOURCE_DIR}
         ${implot_src_SOURCE_DIR}
-        ${VLD_INCLUDE_DIR}
 )
 
 target_link_libraries(engine PUBLIC
@@ -170,8 +213,12 @@ target_link_libraries(engine PUBLIC
         glm::glm
         imgui
         implot
-        ${VLD_LIBRARIES}
 )
+
+if(MINIGIN_ENABLE_VLD AND VLD_INCLUDE_DIR AND VLD_LIBRARIES)
+  target_include_directories(engine PUBLIC ${VLD_INCLUDE_DIR})
+  target_link_libraries(engine PUBLIC ${VLD_LIBRARIES})
+endif()
 
 if(NOT EMSCRIPTEN)
   target_link_libraries(engine PUBLIC Threads::Threads)

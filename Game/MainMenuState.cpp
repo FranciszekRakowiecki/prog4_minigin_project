@@ -250,6 +250,7 @@ void MainMenuState::Update() {
 
         if (mainPlayer.IsShooting()) {
             m_Buttons[m_ButtonSelection]->Execute();
+            Game::GetInstance().PlaySFX(GameSFX::BUTTON_CLICK);
             return;
         }
 

@@ -5,13 +5,12 @@
 #ifndef PROG4MINIGINPROJECT_COOPPLAYERSTATE_H
 #define PROG4MINIGINPROJECT_COOPPLAYERSTATE_H
 #include "GameState.h"
+#include "PlayableGameState.h"
 
 
-class CoopPlayerState : public GameState {
-public:
-    void Enter() override;
-    void Update() override {}
-    void Render() override {}
+class CoopPlayerState : public PlayableGameState {
+protected:
+    void OnLevelLoad(LevelData *, uint32_t) override;
 };
 
 

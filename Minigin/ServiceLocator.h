@@ -34,11 +34,7 @@ public:
     void Shutdown();
     void update();
     // Makes sure the sound system isn't nullptr
-    void setSoundSystem(std::unique_ptr<SoundSystem>&& s) {
-        m_SoundSystem = std::move(s);
-        if (m_SoundSystem == nullptr)
-            m_SoundSystem = std::make_unique<NullSoundSystem>();
-    }
+    void setSoundSystem(std::unique_ptr<SoundSystem>&& s);
     SoundSystem& getSoundSystem() const { return *m_SoundSystem; }
 
     friend class Singleton<ServiceLocator>;
