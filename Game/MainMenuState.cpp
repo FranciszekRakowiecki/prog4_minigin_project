@@ -209,7 +209,6 @@ void MainMenuState::Enter() {
 
     PlayerInputManager::GetInstance().SetPlayerJoinCallback([&](PlayerInputHandler& handler) { this->PlayerJoinCallback(handler); });
 
-    CreateButton("Debug", []() { Game::GetInstance().LoadGameEnd(); });
     CreateButton("SinglePlayer", []() { Game::GetInstance().LoadSinglePlayer(); });
     CreateButton("Coop", []() { Game::GetInstance().LoadCoopPlayer(); });
     CreateButton("Versus", []() { Game::GetInstance().LoadVersusPlayer(); });

@@ -8,8 +8,11 @@
 #include "ProjectileSystem.h"
 
 void VersusPlayerState::OnLevelLoad(LevelData *level_data, uint32_t uint32) {
+    SetCompleteLevelWhenEnemiesDestroyed(false);
+    SetEndGameWhenOnePlayerRemains(true);
+
     const std::vector<PlayerInputHandler>& players = PlayerInputManager::GetInstance().GetPlayers();
-    if (!players.empty()) {
+    if (players.size() >= 2) {
         SpawnPlayer(&players[0]);
         SpawnPlayer(&players[1]);
     }

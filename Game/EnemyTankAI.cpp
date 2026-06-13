@@ -25,7 +25,15 @@ void EnemyTankAI::Start() {
 }
 
 void EnemyTankAI::Update() {
-    if (m_LevelData == nullptr || !m_TankController || m_TankController->IsMoving()) {
+    if (m_LevelData == nullptr) {
+        return;
+    }
+
+    if (TryHandlePlayerCollision()) {
+        return;
+    }
+
+    if (!m_TankController || m_TankController->IsMoving()) {
         return;
     }
 
@@ -89,6 +97,31 @@ void EnemyTankAI::PickMove() {
     m_TankController->TryMove(options[distribution(m_RandomGenerator)]);
 }
 
+bool EnemyTankAI::TryHandlePlayerCollision() {
+    if (m_EnemyType != EnemyType::Recognizer) {
+        return false;
+    }
+
+    PlayableGameState* playable = GetPlayableGameState();
+    if (playable == nullptr) {
+        return false;
+    }
+
+    for (dae::GameObject* target : playable->GetPlayerObjects()) {
+        if (target == nullptr || target->IsDestroyed() || !IsOverlapping(target)) {
+            continue;
+        }
+
+        Game::GetInstance().PlaySFX(GameSFX::PLAYER_DEATH);
+        Game::GetInstance().PlaySFX(GameSFX::ENEMY_DEATH);
+        playable->RespawnPlayerAtRandomSpawn(target, true);
+        GetParent()->Destroy();
+        return true;
+    }
+
+    return false;
+}
+
 bool EnemyTankAI::TryHandleVisiblePlayer() {
     PlayableGameState* playable = GetPlayableGameState();
     if (playable == nullptr) {
@@ -125,6 +158,21 @@ bool EnemyTankAI::TryHandleVisiblePlayer() {
     }
 
     return false;
+}
+
+bool EnemyTankAI::IsOverlapping(dae::GameObject* target) const {
+    if (target == nullptr) {
+        return false;
+    }
+
+    const glm::vec3 enemyPosition = GetParent()->transform.GetWorldPosition();
+    const glm::vec3 targetPosition = target->transform.GetWorldPosition();
+    constexpr float halfTankSize = 10.0f;
+
+    return enemyPosition.x + halfTankSize >= targetPosition.x - halfTankSize
+        && enemyPosition.x - halfTankSize <= targetPosition.x + halfTankSize
+        && enemyPosition.y + halfTankSize >= targetPosition.y - halfTankSize
+        && enemyPosition.y - halfTankSize <= targetPosition.y + halfTankSize;
 }
 
 bool EnemyTankAI::IsTargetVisible(dae::GameObject* target, Direction& directionToTarget) const {

@@ -82,6 +82,8 @@ void PlayableGameState::LoadLevelWithData(LevelData* data, uint32_t index) {
     m_CurrentLevel = data;
     m_CurrentLevelIndex = index;
     m_IsCompletingLevel = false;
+    m_CompleteLevelWhenEnemiesDestroyed = true;
+    m_EndGameWhenOnePlayerRemains = false;
 
     if (m_Scene == nullptr || m_CurrentLevel == nullptr) {
         return;
@@ -230,6 +232,14 @@ void PlayableGameState::RespawnPlayer(dae::GameObject* player) {
     RespawnPlayerAtRandomSpawn(player, true);
 }
 
+void PlayableGameState::SetCompleteLevelWhenEnemiesDestroyed(bool enabled) {
+    m_CompleteLevelWhenEnemiesDestroyed = enabled;
+}
+
+void PlayableGameState::SetEndGameWhenOnePlayerRemains(bool enabled) {
+    m_EndGameWhenOnePlayerRemains = enabled;
+}
+
 glm::vec3 PlayableGameState::TileToWorld(uint32_t x, uint32_t y) const {
     if (m_CurrentLevel == nullptr || m_CurrentLevel->height == 0) {
         return glm::vec3{};
@@ -345,7 +355,12 @@ void PlayableGameState::CheckLevelCompletion() {
         return;
     }
 
-    if (AreAllEnemiesDestroyed()) {
+    if (m_EndGameWhenOnePlayerRemains && IsOnePlayerRemaining()) {
+        EndGame();
+        return;
+    }
+
+    if (m_CompleteLevelWhenEnemiesDestroyed && AreAllEnemiesDestroyed()) {
         CompleteLevel();
     }
 }
@@ -373,6 +388,23 @@ bool PlayableGameState::AreAllPlayersDead() const {
     }
 
     return true;
+}
+
+bool PlayableGameState::IsOnePlayerRemaining() const {
+    uint32_t aliveCount{};
+
+    for (dae::GameObject* player : m_PlayerObjects) {
+        if (player == nullptr || player->IsDestroyed()) {
+            continue;
+        }
+
+        dae::Reference<PlayerHealth> health = player->GetComponent<PlayerHealth>();
+        if (!health || health->lives > 0) {
+            ++aliveCount;
+        }
+    }
+
+    return aliveCount == 1;
 }
 
 bool PlayableGameState::AreAllEnemiesDestroyed() const {

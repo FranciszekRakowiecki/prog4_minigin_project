@@ -3,17 +3,5 @@
   <component name="VcsDirectoryMappings">
     <mapping directory="" vcs="Git" />
     <mapping directory="$PROJECT_DIR$" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/cmake-build-debug/_deps/imgui_src-src" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/cmake-build-debug/_deps/implot_src-src" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/out/build/clang-debug/_deps/imgui-src" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/out/build/clang-debug/_deps/imgui_src-src" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/out/build/clang-debug/_deps/implot-src" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/out/build/clang-debug/_deps/implot_src-src" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/out/build/clang-release/_deps/imgui-src" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/out/build/clang-release/_deps/imgui_src-src" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/out/build/clang-release/_deps/implot-src" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/out/build/clang-release/_deps/implot_src-src" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/out/build/codex-check-default/_deps/imgui_src-src" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/out/build/codex-check-default/_deps/implot_src-src" vcs="Git" />
   </component>
 </project>

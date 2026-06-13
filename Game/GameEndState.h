@@ -22,7 +22,12 @@ public:
     void Exit() override;
 
 private:
+    bool HasPendingHighScore() const;
+    bool IsAnyPlayerSubmitting() const;
+
     dae::Scene* m_Scene{nullptr};
+    float m_ReturnDelay{0.75f};
+    float m_ReturnDelayTimer{0.75f};
 };
 
 

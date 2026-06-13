@@ -47,7 +47,9 @@ private:
     std::default_random_engine m_RandomGenerator{};
 
     void PickMove();
+    bool TryHandlePlayerCollision();
     bool TryHandleVisiblePlayer();
+    bool IsOverlapping(dae::GameObject* target) const;
     bool IsTargetVisible(dae::GameObject* target, Direction& directionToTarget) const;
     bool HasClearLine(uint16_t fromX, uint16_t fromY, uint16_t toX, uint16_t toY) const;
     bool TryGetTargetTile(dae::GameObject* target, uint16_t& tileX, uint16_t& tileY) const;

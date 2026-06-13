@@ -49,6 +49,8 @@ protected:
     dae::GameObject* SpawnPlayer(const PlayerInputHandler* handler);
     void SpawnEnemies();
     void RespawnPlayer(dae::GameObject* player);
+    void SetCompleteLevelWhenEnemiesDestroyed(bool enabled);
+    void SetEndGameWhenOnePlayerRemains(bool enabled);
 
     glm::vec3 TileToWorld(uint32_t x, uint32_t y) const;
     dae::Scene* GetScene() const;
@@ -61,6 +63,7 @@ private:
     void CheckLevelCompletion();
     void RemoveDestroyedObjects(std::vector<dae::GameObject*>& objects);
     bool AreAllPlayersDead() const;
+    bool IsOnePlayerRemaining() const;
     bool AreAllEnemiesDestroyed() const;
     void CompleteLevel();
     void EndGame();
@@ -72,6 +75,8 @@ private:
     std::vector<dae::GameObject*> m_EnemyObjects{};
     ProjectileSystem* m_ProjectileSystem{nullptr};
     bool m_IsCompletingLevel{false};
+    bool m_CompleteLevelWhenEnemiesDestroyed{true};
+    bool m_EndGameWhenOnePlayerRemains{false};
     std::default_random_engine m_RandomGenerator{};
 };
 
